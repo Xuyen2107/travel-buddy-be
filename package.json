@@ -1,0 +1,57 @@
+{
+   "name": "travel-buddy-be",
+   "version": "1.0.0",
+   "description": "",
+   "main": "/src/server.js",
+   "type": "module",
+   "scripts": {
+      "test": "echo \"Error: no test specified\" && exit 1",
+      "dev": "nodemon src/server.js"
+   },
+   "repository": {
+      "type": "git",
+      "url": "git+https://github.com/Xuyen2107/travel-buddy-be.git"
+   },
+   "author": "",
+   "license": "ISC",
+   "bugs": {
+      "url": "https://github.com/Xuyen2107/travel-buddy-be/issues"
+   },
+   "homepage": "https://github.com/Xuyen2107/travel-buddy-be#readme",
+   "dependencies": {
+      "bcrypt": "^5.1.1",
+      "cloudinary": "^1.40.0",
+      "cors": "^2.8.5",
+      "date-fns": "^2.30.0",
+      "dotenv": "^16.3.1",
+      "express": "^4.18.2",
+      "express-async-handler": "^1.2.0",
+      "jsonwebtoken": "^9.0.1",
+      "moment": "^2.29.4",
+      "mongoose": "^7.4.3",
+      "morgan": "^1.10.0",
+      "multer": "^1.4.5-lts.1",
+      "yup": "^1.2.0"
+   },
+   "devDependencies": {
+      "@babel/cli": "^7.22.10",
+      "@babel/core": "^7.22.10",
+      "@babel/polyfill": "^7.12.1",
+      "@babel/preset-env": "^7.22.10",
+      "babel-loader": "^9.1.3",
+      "babel-plugin-module-resolver": "^5.0.0",
+      "concurrently": "^8.2.0",
+      "dotenv-webpack": "^8.0.1",
+      "eslint": "^8.47.0",
+      "eslint-config-prettier": "^9.0.0",
+      "eslint-plugin-import": "^2.28.1",
+      "eslint-plugin-prettier": "^5.0.0",
+      "eslint-plugin-simple-import-sort": "^10.0.0",
+      "eslint-webpack-plugin": "^4.0.1",
+      "nodemon": "^3.0.1",
+      "prettier": "^3.0.2",
+      "webpack": "^5.88.2",
+      "webpack-cli": "^5.1.4",
+      "webpack-node-externals": "^3.0.0"
+   }
+}
