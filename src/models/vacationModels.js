@@ -27,7 +27,7 @@ const VacationSchema = new mongoose.Schema({
       },
    ],
 
-   status: {
+   isPublic: {
       type: String,
       require: true,
    },
@@ -65,9 +65,12 @@ const VacationSchema = new mongoose.Schema({
       default: [],
    },
 
-   comments: {
-      type: Array,
-      default: [],
+   createAt: {
+      type: String,
+   },
+
+   updateAt: {
+      type: String,
    },
 });
 

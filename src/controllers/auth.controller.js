@@ -1,6 +1,7 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import UserModel from "../models/userModels.js";
+import { formatDate } from "../utils/formatDate.js";
 
 const AuthController = {
    login: async (req, res) => {
@@ -80,6 +81,7 @@ const AuthController = {
          phoneNumber,
          userName,
          password: haledPassword,
+         createAt: formatDate(new Date()),
       });
 
       await newUser.save();

@@ -1,6 +1,11 @@
 import mongoose from "mongoose";
 
 const AlbumSchema = new mongoose.Schema({
+   author: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Users",
+   },
+
    nameAlbum: {
       type: String,
       require: true,
@@ -15,19 +20,22 @@ const AlbumSchema = new mongoose.Schema({
       type: String,
    },
 
-   fullName: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Users",
-   },
-
-   status: {
+   isPublic: {
       type: String,
       require: true,
    },
 
-   albums: {
+   images: {
       type: Array,
       require: true,
+   },
+
+   createAt: {
+      type: String,
+   },
+
+   updateAt: {
+      type: String,
    },
 });
 

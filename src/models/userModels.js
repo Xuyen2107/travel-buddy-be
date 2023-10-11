@@ -1,9 +1,18 @@
 import mongoose from "mongoose";
+import { formatDate } from "../utils/formatDate.js";
 
 const UserSchema = new mongoose.Schema({
    fullName: {
       type: String,
       require: true,
+   },
+
+   userName: {
+      type: String,
+      require: true,
+      min: 6,
+      max: 20,
+      unique: true,
    },
 
    email: {
@@ -14,14 +23,6 @@ const UserSchema = new mongoose.Schema({
 
    phoneNumber: {
       type: String,
-      unique: true,
-   },
-
-   userName: {
-      type: String,
-      require: true,
-      min: 6,
-      max: 20,
       unique: true,
    },
 
@@ -49,6 +50,14 @@ const UserSchema = new mongoose.Schema({
    },
 
    describe: {
+      type: String,
+   },
+
+   createAt: {
+      type: String,
+   },
+
+   updateAt: {
       type: String,
    },
 });

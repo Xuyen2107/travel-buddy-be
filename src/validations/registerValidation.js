@@ -14,7 +14,7 @@ const registerSchema = Yup.object().shape({
    password: Yup.string()
       .required("Không được để trống")
       .matches(
-         /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/,
+         /^[a-zA-Z0-9!@#$%^&*()_+=\\[\]{}|;:'",.<>/?`~]*$/,
          "Mật khẩu phải bao gồm chữ cái, số và ít nhất một ký tự đặc biệt"
       ),
 });
