@@ -1,11 +1,12 @@
 import * as Yup from "yup";
 
 const albumSchema = Yup.object().shape({
-   nameAlbum: Yup.string().required("Không được để trống"),
-   vacationName: Yup.string().required("Không được để trống"),
+   author: Yup.string().required("Tên tác giả không được để trống"),
+   nameAlbum: Yup.string().required("Tên album hông được để trống"),
    avatarAlbum: Yup.string(),
-   fullName: Yup.string().required("Không được để trống"),
-   status: Yup.string().required("Vui lòng chọn trạng thái"),
-   albums: Yup.string().required("Vui lòng chọn ảnh"),
+   vacationName: Yup.string().required("Tên kì nghỉ Không được để trống"),
+   isPublic: Yup.string().required("Vui lòng chọn trạng thái"),
+   images: Yup.array().required("Vui lòng chọn ảnh của bạn"),
 });
+
 export default albumSchema;
