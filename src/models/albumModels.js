@@ -6,12 +6,12 @@ const AlbumSchema = new mongoose.Schema({
     ref: "Users",
     required: true,
   },
-  nameAlbum: {
+  nameAlbum: {  
     type: String,
     required: true,
   },
   avatarAlbum: {
-    type: String,
+    type: String, 
     required: true,
   },
   actions: {

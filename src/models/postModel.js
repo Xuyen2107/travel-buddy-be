@@ -29,6 +29,10 @@ const postSchema = new mongoose.Schema({
     type: [String],
     default: [],
   },
+  checkIn: {
+    type: String,
+    default: "",
+  },
   createAt: {
     type: Date,
     default: Date.Now,
