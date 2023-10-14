@@ -20,7 +20,8 @@ const AlbumSchema = new mongoose.Schema({
     required: true,
   },
   isPublic: {
-    type: String,
+    type: Boolean,
+    default: false,
   },
   images: {
     type: Array,
