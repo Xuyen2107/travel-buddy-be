@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import UserModel from "../models/userModels.js";
+import UserModel from "../models/userModel.js";
 import { formatDate } from "../utils/formatDate.js";
 
 const AuthController = {
