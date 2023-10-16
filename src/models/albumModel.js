@@ -14,11 +14,6 @@ const AlbumSchema = new mongoose.Schema({
     type: String, 
     required: true,
   },
-  actions: {
-    type: String,
-    enum: ["Cập nhật", "Xóa"],
-    required: true,
-  },
   isPublic: {
     type: Boolean,
     default: false,

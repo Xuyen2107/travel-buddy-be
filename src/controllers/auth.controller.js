@@ -1,7 +1,6 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import UserModel from "../models/userModel.js";
-import { formatDate } from "../utils/formatDate.js";
 
 const AuthController = {
    login: async (req, res) => {
@@ -94,8 +93,6 @@ const AuthController = {
       const { id } = req.user;
 
       const currentUser = await UserModel.findById(id).select("-password");
-
-      console.log(formatDate(currentUser.createAt));
 
       res.json({
          userInfo: currentUser,
