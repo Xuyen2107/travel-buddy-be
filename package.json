@@ -20,7 +20,7 @@
    "homepage": "https://github.com/Xuyen2107/travel-buddy-be#readme",
    "dependencies": {
       "bcrypt": "^5.1.1",
-      "cloudinary": "^1.40.0",
+      "cloudinary": "^1.41.0",
       "cors": "^2.8.5",
       "date-fns": "^2.30.0",
       "dotenv": "^16.3.1",
