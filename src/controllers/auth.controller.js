@@ -1,25 +1,26 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import asyncHandler from "express-async-handler";
 import UserModel from "../models/userModel.js";
-import { formatDate } from "../utils/formatDate.js";
 
 const AuthController = {
-   login: async (req, res) => {
+   login: asyncHandler(async (req, res) => {
       const { loginInfo, password } = req.body;
 
       const existingUser = await UserModel.findOne({
          $or: [{ email: loginInfo }, { phoneNumber: loginInfo }, { userName: loginInfo }],
       });
+
       if (!existingUser) {
-         return res.status(401).json({
-            message: "Tài jhoản chưa được đăng kí",
+         return res.status(404).json({
+            message: "Tài khoản chưa được đăng kí",
          });
       }
 
       const isMatchPassword = bcrypt.compare(password, existingUser.password);
 
       if (!isMatchPassword) {
-         return res.status(401).json({
+         return res.status(400).json({
             message: "Mật khẩu chưa đúng",
          });
       }
@@ -37,9 +38,9 @@ const AuthController = {
          message: "Đăng nhập thành công",
          accessToken: token,
       });
-   },
+   }),
 
-   register: async (req, res) => {
+   register: asyncHandler(async (req, res) => {
       const { fullName, userName, phoneNumber, email, password, rePassword } = req.body;
 
       const [existingUserName, existingEmail, existingPhoneNumber] = await Promise.all([
@@ -67,7 +68,7 @@ const AuthController = {
       }
 
       if (rePassword !== password) {
-         return res.status(403).json({
+         return res.status(400).json({
             message: "Mật khẩu nhập lại chưa đúng",
          });
       }
@@ -81,25 +82,24 @@ const AuthController = {
          phoneNumber,
          userName,
          password: haledPassword,
-         createAt: formatDate(new Date()),
       });
 
       await newUser.save();
 
-      res.status(200).json({
+      res.status(201).json({
          message: "Đăng ký thành công",
       });
-   },
+   }),
 
-   profile: async (req, res) => {
+   profile: asyncHandler(async (req, res) => {
       const { id } = req.user;
 
       const currentUser = await UserModel.findById(id).select("-password");
 
-      res.json({
+      res.status(200).json({
          userInfo: currentUser,
       });
-   },
+   }),
 };
 
 export default AuthController;
