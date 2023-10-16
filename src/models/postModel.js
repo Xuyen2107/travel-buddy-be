@@ -2,8 +2,12 @@ import mongoose from "mongoose";
 
 const postSchema = new mongoose.Schema({
   author: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: String,
     required: true,
+  },
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Users",
   },
   vacation: {
     type: String,
