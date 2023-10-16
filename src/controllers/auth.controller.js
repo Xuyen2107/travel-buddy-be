@@ -12,7 +12,7 @@ const AuthController = {
       });
       if (!existingUser) {
          return res.status(401).json({
-            message: "Tài jhoản chưa được đăng kí",
+            message: "Tài khoản chưa được đăng kí",
          });
       }
 
@@ -81,7 +81,6 @@ const AuthController = {
          phoneNumber,
          userName,
          password: haledPassword,
-         createAt: formatDate(new Date()),
       });
 
       await newUser.save();
@@ -95,6 +94,8 @@ const AuthController = {
       const { id } = req.user;
 
       const currentUser = await UserModel.findById(id).select("-password");
+
+      console.log(formatDate(currentUser.createAt));
 
       res.json({
          userInfo: currentUser,

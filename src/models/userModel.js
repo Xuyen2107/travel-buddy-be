@@ -1,6 +1,4 @@
 import mongoose from "mongoose";
-import { date } from "yup";
-import { formatDate } from "../utils/formatDate.js";
 
 const UserSchema = new mongoose.Schema({
    fullName: {
@@ -42,7 +40,7 @@ const UserSchema = new mongoose.Schema({
       type: String,
    },
 
-   sex: {
+   gender: {
       type: String,
    },
 
@@ -52,11 +50,11 @@ const UserSchema = new mongoose.Schema({
 
    createAt: {
       type: Date,
-      default: formatDate(new Date()),
+      default: Date.now(),
    },
 
    updateAt: {
-      type: String,
+      type: Date,
    },
 });
 

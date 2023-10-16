@@ -1,6 +1,5 @@
 import bcrypt from "bcrypt";
 import UserModel from "../models/userModel.js";
-import { formatDate } from "../utils/formatDate.js";
 
 const UserController = {
    updateUser: async (req, res) => {
@@ -8,16 +7,7 @@ const UserController = {
       const body = req.body;
 
       if (body.id === userId) {
-         if (body.password) {
-            try {
-               const salt = await bcrypt.genSalt(10);
-               body.password = await bcrypt.hash(body.password, salt);
-            } catch (error) {
-               console.log(error);
-            }
-         }
-
-         body.updateAt = formatDate(new Date());
+         body.updateAt = new Date();
 
          try {
             await UserModel.findByIdAndUpdate(
@@ -26,7 +16,8 @@ const UserController = {
                   $set: body,
                },
                { new: true }
-            );
+            ).select("-password");
+
             res.status(200).json({
                message: " Cập nhật thành công",
             });
@@ -35,12 +26,12 @@ const UserController = {
          }
       }
 
-      return res.status(403).json("Bạn chỉ được cập nhật thông tin của bạn");
+      return res.status(403).json({
+         message: "Bạn chỉ được cập nhật thông tin của bạn",
+      });
    },
 
-   uploadAvatar: async (req, res) =>{
-      
-   }
+   uploadAvatar: async (req, res) => {},
 };
 
 export default UserController;
