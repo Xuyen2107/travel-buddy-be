@@ -11,9 +11,9 @@ export const authMiddleware = (req, res, next) => {
 
    try {
       const decoded = jwt.verify(token, process.env.SECRET_KEY || "Travel Buddy");
-      console.log(decoded);
 
       req.user = decoded;
+
       next();
    } catch (error) {
       if (error instanceof jwt.TokenExpiredError) {
