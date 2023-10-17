@@ -9,6 +9,12 @@ const postRouter = express.Router();
 postRouter.use(authMiddleware);
 
 postRouter.get("/", postController.index);
+
+postRouter.get("/all", postController.getAllPosts);
+postRouter.get("/owners/:id", postController.getAllOwnerPosts);
+postRouter.get("/:id", postController.getSingle);
+postRouter.put("/:id", postController.update);
+postRouter.delete("/:id", postController.remove);
 postRouter.post("/", validationMiddleware(postSchema), postController.create);
 
 export default postRouter;
