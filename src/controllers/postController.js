@@ -154,6 +154,39 @@ const postController = {
       res.status(500).json({ message: error.message });
     }
   },
+
+  //[Post] /post/:id/like
+  // Like a post
+  likePost: async (req, res) => {
+    try {
+      const postId = req.params.id;
+      const userId = req.user.id;
+
+      const post = await PostModel.findById(postId);
+
+      if (!post) {
+        return res.status(404).json({ message: "Bài post không tồn tại" });
+      }
+
+      const likedIndex = post.likes.findIndex(
+        (like) => like.user.toString() === userId.toString()
+      );
+
+      if (likedIndex === -1) {
+        // Nếu chưa thích, thêm user vào danh sách likes
+        post.likes.push({ user: userId });
+        await post.save();
+        res.status(200).json({ message: "Đã thích bài viết này" });
+      } else {
+        // Nếu đã thích, xóa user ra khỏi danh sách likes
+        post.likes.splice(likedIndex, 1);
+        await post.save();
+        res.status(200).json({ message: "Bài viết đã bỏ thích" });
+      }
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  },
 };
 
 export default postController;
