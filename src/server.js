@@ -6,18 +6,22 @@ import { errorHandleMiddleware } from "./middlewares/error.middleware.js";
 import { connectToDatabase } from "./configs/database.config.js";
 import { formatDate } from "./utils/formatDate.js";
 import appRoute from "./routes/index.js";
+import { configCloudinary } from "./configs/cloudinary.config.js";
 
 const app = express();
 
+app.use(express.json());
+
 dotenv.config();
 connectToDatabase();
+configCloudinary();
 
 app.use(morgan("dev"));
 app.use(cors("*"));
-app.use(express.json());
-app.use(errorHandleMiddleware);
 
 app.use("/api/v1", appRoute);
+
+app.use(errorHandleMiddleware);
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
