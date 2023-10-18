@@ -5,7 +5,7 @@ export const authMiddleware = (req, res, next) => {
 
    if (!token) {
       return res.status(400).json({
-         message: "Token chưa được cung cấp",
+         message: "Vui lòng đăng nhập.",
       });
    }
 
@@ -18,11 +18,11 @@ export const authMiddleware = (req, res, next) => {
    } catch (error) {
       if (error instanceof jwt.TokenExpiredError) {
          return res.status(403).json({
-            message: "Token hết hạn",
+            message: "Hết hạn đăng nhập, vui lòng đăng nhập lại.",
          });
       } else {
          return res.status(401).json({
-            message: "Token không hợp lệ",
+            message: "Token không hợp lệ.",
          });
       }
    }

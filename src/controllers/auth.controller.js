@@ -17,7 +17,7 @@ const AuthController = {
          });
       }
 
-      const isMatchPassword = bcrypt.compare(password, existingUser.password);
+      const isMatchPassword = await bcrypt.compare(password, existingUser.password);
 
       if (!isMatchPassword) {
          return res.status(400).json({
