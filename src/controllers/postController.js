@@ -1,3 +1,5 @@
+import mongoose from "mongoose";
+import CommentModel from "../models/commentModel.js";
 import PostModel from "../models/postModel.js";
 import UserModel from "../models/userModel.js";
 
@@ -12,34 +14,25 @@ const postController = {
   //[Post]
   //Create a new post
 
-  create: async (req, res) => {
+  createPost: async (req, res) => {
     try {
-      const { author, vacation, milestones, content, mediaUrls, checkIn } =
-        req.body;
+      const { vacation, milestones, content, mediaUrls, checkIn } = req.body;
 
       const userId = req.user.id;
 
-      const currentUser = await UserModel.findById(userId);
-
-      if (!currentUser) {
-        res.status(404).json({
-          message: "không tìm thấy user",
-        });
-      }
-
       const newPost = new PostModel({
-        author,
-        user: userId,
+        author: userId,
         vacation,
         milestones,
         content,
         mediaUrls,
         checkIn,
       });
+      await newPost.save();
 
-      const savedPost = await newPost.save();
-
-      res.status(201).json(savedPost);
+      res.status(200).json({
+        data: newPost,
+      });
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
@@ -52,7 +45,7 @@ const postController = {
     try {
       const posts = await PostModel.find();
 
-      res.status(200).json(posts);
+      res.status(200).json({ data: posts });
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
@@ -60,13 +53,16 @@ const postController = {
 
   //[Get] /post/:id
   //get a post
-  getSingle: async (req, res) => {
+  getSinglePost: async (req, res) => {
     try {
       const postId = req.params.id;
 
-      const post = await PostModel.findById(postId);
+      const post = await PostModel.findById(postId).populate({
+        path: "author",
+        select: "fullName phoneNumber userName",
+      });
 
-      res.status(200).json(post);
+      res.status(200).json({ data: post });
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
@@ -79,14 +75,14 @@ const postController = {
     try {
       const userId = req.user.id;
 
-      const posts = await PostModel.find({ user: userId });
+      const posts = await PostModel.find({ author: userId });
 
-      if (posts.length === 0) {
+      if (!posts) {
         return res
           .status(404)
           .json("Không tìm thấy bất kỳ bài viết nào của user");
       }
-      res.status(201).json(posts);
+      res.status(201).json({ data: posts });
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
@@ -95,27 +91,17 @@ const postController = {
   //[Put] /post/:id
   //Update a post
 
-  update: async (req, res) => {
+  updatePost: async (req, res) => {
     try {
       const postId = req.params.id;
-      const { author, vacation, milestones, content, mediaUrls, checkIn } =
-        req.body;
+      const { vacation, milestones, content, mediaUrls, checkIn } = req.body;
 
       const userId = req.user.id;
-
-      const currentUser = await UserModel.findById(userId);
-
-      if (!currentUser) {
-        res.status(404).json({
-          message: "không tìm thấy user",
-        });
-      }
 
       const updatePost = await PostModel.findByIdAndUpdate(
         postId,
         {
-          author,
-          user: userId,
+          author: userId,
           vacation,
           milestones,
           content,
@@ -130,7 +116,7 @@ const postController = {
         return res.status(404).json({ message: "bài post không tồn tại" });
       }
 
-      res.status(200).json(updatePost);
+      res.status(200).json({ data: updatePost });
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
@@ -139,7 +125,7 @@ const postController = {
   //[Delete] /post/:id
   //delete a post
 
-  remove: async (req, res) => {
+  removePost: async (req, res) => {
     try {
       const postId = req.params.id;
 
@@ -175,6 +161,7 @@ const postController = {
       if (likedIndex === -1) {
         // Nếu chưa thích, thêm user vào danh sách likes
         post.likes.push({ user: userId });
+
         await post.save();
         res.status(200).json({ message: "Đã thích bài viết này" });
       } else {
@@ -183,6 +170,38 @@ const postController = {
         await post.save();
         res.status(200).json({ message: "Bài viết đã bỏ thích" });
       }
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  },
+
+  commentOnPost: async (req, res) => {
+    try {
+      const postId = req.params.id;
+      const name = req.user.userName;
+      const userId = req.user.id;
+      const { text } = req.body;
+
+      const post = await PostModel.findById(postId);
+
+      if (!post) {
+        return res.status(404).json({ message: "bài post này không tồn tại" });
+      }
+
+      const comment = new CommentModel({
+        author: userId,
+        user: name,
+        text: text,
+        idPost: postId,
+      });
+
+      post.comments.push(comment);
+
+      await post.save();
+
+      res
+        .status(200)
+        .json({ message: "bài post đã được bình luận", data: post.comments });
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
