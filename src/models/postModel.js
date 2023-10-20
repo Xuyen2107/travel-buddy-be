@@ -2,17 +2,15 @@ import mongoose from "mongoose";
 
 const postSchema = new mongoose.Schema({
   author: {
-    type: String,
-    required: true,
-  },
-  user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Users",
   },
+
   vacation: {
     type: String,
     default: "kỳ nghỉ hiện tại",
   },
+
   milestones: [
     {
       time: {
@@ -25,6 +23,7 @@ const postSchema = new mongoose.Schema({
       },
     },
   ],
+
   content: {
     type: String,
     required: true,
@@ -39,7 +38,7 @@ const postSchema = new mongoose.Schema({
   },
   likes: [
     {
-      user: {
+      author: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Users",
       },
@@ -51,8 +50,17 @@ const postSchema = new mongoose.Schema({
   ],
   comments: [
     {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Comments",
+      author: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Users",
+      },
+      idPost: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Posts",
+      },
+      text: {
+        type: String,
+      },
     },
   ],
   shares: [
