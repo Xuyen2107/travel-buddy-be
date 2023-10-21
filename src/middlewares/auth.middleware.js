@@ -10,15 +10,13 @@ export const authMiddleware = (req, res, next) => {
    }
 
    try {
-      const decoded = jwt.verify(token, process.env.SECRET_KEY || "Travel Buddy");
-
+      const decoded = jwt.verify(token, process.env.SECRET_KEY);
       req.user = decoded;
-
       next();
    } catch (error) {
       if (error instanceof jwt.TokenExpiredError) {
          return res.status(403).json({
-            message: "Hết hạn đăng nhập, vui lòng đăng nhập lại.",
+            message: "Hết thời gian đăng nhập, vui lòng đăng nhập lại.",
          });
       } else {
          return res.status(401).json({

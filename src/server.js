@@ -2,11 +2,11 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import morgan from "morgan";
-import { errorHandlerMiddleware } from "./middlewares/error.middleware.js";
-import { connectToDatabase } from "./configs/database.config.js";
-import { formatDate } from "./utils/formatDate.js";
 import appRoute from "./routes/index.js";
+import { connectToDatabase } from "./configs/db.config.js";
 import { configCloudinary } from "./configs/cloudinary.config.js";
+import { errorHandlerMiddleware } from "./middlewares/error.middleware.js";
+import { formatDate } from "./utils/formatDate.js";
 
 const app = express();
 

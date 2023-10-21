@@ -2,19 +2,9 @@ import bcrypt from "bcrypt";
 import asyncHandler from "express-async-handler";
 import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";
-import nodemailer from "nodemailer";
 import randomstring from "randomstring";
 import UserModel from "../models/userModel.js";
-
-const transporter = nodemailer.createTransport({
-   service: "Gmail",
-   auth: {
-      user: "travelbuddy2107@gmail.com",
-      pass: "Meloetta123",
-   },
-});
-
-const otpCache = new Map();
+import { sendEmail } from "../services/EmailService.js";
 
 const UserController = {
    getUser: asyncHandler(async (req, res) => {
@@ -23,7 +13,7 @@ const UserController = {
       const user = await UserModel.findById(userId).select("-password");
 
       if (!user) {
-         res.status(404).json({
+         return res.status(404).json({
             message: "Không tìm thấy người dùng",
          });
       }
@@ -34,20 +24,13 @@ const UserController = {
    }),
 
    updateUser: asyncHandler(async (req, res) => {
-      const userId = req.params.id;
       const { id } = req.user;
       const body = req.body;
-
-      if (userId !== id) {
-         return res.status(403).json({
-            message: "Bạn chỉ được cập nhật thông tin của bạn",
-         });
-      }
 
       body.updateAt = new Date();
 
       const newUser = await UserModel.findByIdAndUpdate(
-         userId,
+         id,
          {
             $set: body,
          },
@@ -55,7 +38,6 @@ const UserController = {
       ).select("-password");
 
       res.status(200).json({
-         message: " Cập nhật thành công",
          userUpdate: newUser,
       });
    }),
@@ -63,13 +45,6 @@ const UserController = {
    uploadAvatar: asyncHandler(async (req, res) => {
       const { id } = req.user;
       const file = req.file;
-      const userId = req.params.id;
-
-      if (userId !== id) {
-         return res.status(403).json({
-            message: "Bạn chỉ được cập nhật avatar của bạn",
-         });
-      }
 
       if (!file) {
          return res.status(404).json({
@@ -86,33 +61,25 @@ const UserController = {
 
       fs.unlinkSync(file.path);
 
-      const updateUser = await UserModel.findOneAndUpdate(
-         { _id: userId },
+      const updateUser = await UserModel.findByIdAndUpdate(
+         id,
          {
             avatar: avatarUrl,
-            updateAt: Date.now(),
+            updateAt: new Date(),
          },
          { new: true }
       ).select("-password");
 
       res.status(200).json({
-         message: "Cập nhật ảnh đại diện thành công",
          data: updateUser,
       });
    }),
 
    changePassword: asyncHandler(async (req, res) => {
       const { id } = req.user;
-      const userId = req.params.id;
       const { password, newPassword } = req.body;
 
-      if (userId !== id) {
-         return res.status(403).json({
-            message: "Bạn chỉ được cập nhật mật khẩu của bạn",
-         });
-      }
-
-      const existingUser = await UserModel.findById(userId);
+      const existingUser = await UserModel.findById(id).select("password");
 
       const isMatchPassword = await bcrypt.compare(password, existingUser.password);
 
@@ -126,7 +93,7 @@ const UserController = {
       const haledPassword = await bcrypt.hash(newPassword, salt);
 
       await UserModel.findByIdAndUpdate(
-         userId,
+         id,
          {
             password: haledPassword,
             updateAt: new Date(),
@@ -140,41 +107,20 @@ const UserController = {
    }),
 
    forgotPassword: asyncHandler(async (req, res) => {
-      const { id } = req.user;
-      const userId = req.params.id;
       const { email } = req.body;
 
-      if (userId !== id) {
-         return res.status(403).json({
-            message: "Bạn chỉ được cập nhật mật khẩu của bạn",
-         });
-      }
-
       if (!email) {
-         return res.status(403).json({
+         return res.status(404).json({
             message: "Bạn chưa nhập email",
          });
       }
 
       const otp = randomstring.generate(6);
 
-      const mailOptions = {
-         from: "travelbuddy2107@gmail.com",
-         to: email,
-         subject: "Mã OTP đổi mật khẩu",
-         text: `Mã OTP của bạn là: ${otp}`,
-      };
+      await sendEmail(email, otp);
 
-      transporter.sendMail(mailOptions, (error) => {
-         if (error) {
-            return res.status(500).json({
-               message: "Gửi email thất bại",
-               error: error,
-            });
-         } else {
-            otpCache.set(email, otp);
-            return res.status(200).json({ message: "Mã otp đã gửi đến bạn" });
-         }
+      res.status(200).json({
+         message: "Mã otp đã gửi đến bạn",
       });
    }),
 };

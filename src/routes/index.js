@@ -7,7 +7,7 @@ import { authMiddleware } from "../middlewares/auth.middleware.js";
 const appRoute = express.Router();
 
 appRoute.use("/auth", authRouter);
-appRoute.use("/user/", authMiddleware, userRoute);
+appRoute.use("/user", authMiddleware, userRoute);
 appRoute.use("/post", postRouter);
 
 export default appRoute;

@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 const VacationSchema = new mongoose.Schema({
-   promoter: {
+   author: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Users",
       require: true,
@@ -15,10 +15,6 @@ const VacationSchema = new mongoose.Schema({
    description: {
       type: String,
       require: true,
-   },
-
-   numberUser: {
-      type: Number,
    },
 
    listUser: [
@@ -49,6 +45,7 @@ const VacationSchema = new mongoose.Schema({
             type: String,
             required: true,
          },
+
          description: {
             type: String,
             required: true,

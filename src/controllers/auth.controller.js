@@ -27,21 +27,19 @@ const AuthController = {
 
       const jwtPayload = {
          id: existingUser.id,
-         userName: existingUser.userName,
       };
 
-      const token = jwt.sign(jwtPayload, process.env.SECRET_KEY || "Travel Buddy", {
-         expiresIn: "24h",
+      const token = jwt.sign(jwtPayload, process.env.SECRET_KEY, {
+         expiresIn: "72h",
       });
 
       res.status(200).json({
-         message: "Đăng nhập thành công",
          accessToken: token,
       });
    }),
 
    register: asyncHandler(async (req, res) => {
-      const { fullName, userName, phoneNumber, email, password, rePassword } = req.body;
+      const { fullName, userName, email, phoneNumber, password, rePassword } = req.body;
 
       const [existingUserName, existingEmail, existingPhoneNumber] = await Promise.all([
          UserModel.findOne({ userName }),
@@ -78,15 +76,15 @@ const AuthController = {
 
       const newUser = new UserModel({
          fullName,
+         userName,
          email,
          phoneNumber,
-         userName,
          password: haledPassword,
       });
 
       await newUser.save();
 
-      res.status(201).json({
+      res.status(200).json({
          message: "Đăng ký thành công",
       });
    }),
