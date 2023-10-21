@@ -22,16 +22,6 @@ const registerSchema = Yup.object().shape({
          /^[a-zA-Z0-9!@#$%^&*()_+=\\[\]{}|;:'",.<>/?`~]*$/,
          "Mật khẩu gồm chữ in hoa, chữ thường, số và kí tự đặc biệt"
       ),
-
-   avatar: Yup.string(),
-
-   age: Yup.number(),
-
-   dateOfBirth: Yup.string(),
-
-   gender: Yup.string(),
-
-   describe: Yup.string(),
 });
 
 export default registerSchema;
