@@ -13,12 +13,13 @@ postRouter.get("/", postController.index);
 //Basic CRUD
 postRouter.get("/all", postController.getAllPosts);
 postRouter.get("/owners/:id", postController.getAllOwnerPosts);
-postRouter.get("/:id", postController.getSingle);
-postRouter.put("/:id", postController.update);
-postRouter.delete("/:id", postController.remove);
-postRouter.post("/", validationMiddleware(postSchema), postController.create);
+postRouter.get("/:id", postController.getSinglePost);
+postRouter.put("/:id", postController.updatePost);
+postRouter.delete("/:id", postController.removePost);
+postRouter.post("/", postController.createPost);
 
 //Like
 postRouter.put("/:id/like", postController.likePost);
+postRouter.post("/:id/comment", postController.commentOnPost);
 
 export default postRouter;
