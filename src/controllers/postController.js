@@ -4,15 +4,15 @@ import PostModel from "../models/postModel.js";
 import UserModel from "../models/userModel.js";
 
 const postController = {
-  //[Get] /post
-  index: async (req, res) => {
-    res.json({
-      message: "Test Api [Get] /api/v1/post",
-    });
-  },
+   //[Get] /post
+   index: async (req, res) => {
+      res.json({
+         message: "Test Api [Get] /api/v1/post",
+      });
+   },
 
-  //[Post]
-  //Create a new post
+   //[Post]
+   //Create a new post
 
   createPost: async (req, res) => {
     try {
@@ -38,12 +38,12 @@ const postController = {
     }
   },
 
-  //[Get] /post/all
-  // get all new feed
+   //[Get] /post/all
+   // get all new feed
 
-  getAllPosts: async (req, res) => {
-    try {
-      const posts = await PostModel.find();
+   getAllPosts: async (req, res) => {
+      try {
+         const posts = await PostModel.find();
 
       res.status(200).json({ data: posts });
     } catch (error) {
@@ -68,12 +68,12 @@ const postController = {
     }
   },
 
-  //[Get] /post/owners/:id
-  //Get all post owners
+   //[Get] /post/owners/:id
+   //Get all post owners
 
-  getAllOwnerPosts: async (req, res) => {
-    try {
-      const userId = req.user.id;
+   getAllOwnerPosts: async (req, res) => {
+      try {
+         const userId = req.user.id;
 
       const posts = await PostModel.find({ author: userId });
 
@@ -88,8 +88,8 @@ const postController = {
     }
   },
 
-  //[Put] /post/:id
-  //Update a post
+   //[Put] /post/:id
+   //Update a post
 
   updatePost: async (req, res) => {
     try {
@@ -112,9 +112,9 @@ const postController = {
         { new: true }
       );
 
-      if (!updatePost) {
-        return res.status(404).json({ message: "bài post không tồn tại" });
-      }
+         if (!updatePost) {
+            return res.status(404).json({ message: "bài post không tồn tại" });
+         }
 
       res.status(200).json({ data: updatePost });
     } catch (error) {
@@ -122,34 +122,39 @@ const postController = {
     }
   },
 
-  //[Delete] /post/:id
-  //delete a post
+   //[Delete] /post/:id
+   //delete a post
 
   removePost: async (req, res) => {
     try {
       const postId = req.params.id;
 
-      const deletePost = await PostModel.findByIdAndDelete(postId);
+         const deletePost = await PostModel.findByIdAndDelete(postId);
 
-      if (!deletePost) {
-        return res.status(404).json({ message: "bài Post không tồn tại" });
+         if (!deletePost) {
+            return res.status(404).json({ message: "bài Post không tồn tại" });
+         }
+
+         res.status(200).json({ message: "Bài post đã được xóa thành công" });
+      } catch (error) {
+         res.status(500).json({ message: error.message });
       }
+   },
 
-      res.status(200).json({ message: "Bài post đã được xóa thành công" });
-    } catch (error) {
-      res.status(500).json({ message: error.message });
-    }
-  },
+   //[Post] /post/:id/like
+   // Like a post
+   likePost: async (req, res) => {
+      try {
+         const postId = req.params.id;
+         const userId = req.user.id;
 
-  //[Post] /post/:id/like
-  // Like a post
-  likePost: async (req, res) => {
-    try {
-      const postId = req.params.id;
-      const userId = req.user.id;
+         const post = await PostModel.findById(postId);
 
-      const post = await PostModel.findById(postId);
+         if (!post) {
+            return res.status(404).json({ message: "Bài post không tồn tại" });
+         }
 
+<<<<<<< HEAD
       if (!post) {
         return res.status(404).json({ message: "Bài post không tồn tại" });
       }
@@ -157,6 +162,11 @@ const postController = {
       const likedIndex = post.likes.findIndex(
         (like) => like.author.toString() === userId.toString()
       );
+=======
+         const likedIndex = post.likes.findIndex(
+            (like) => like.user.toString() === userId.toString()
+         );
+>>>>>>> dev
 
       if (likedIndex === -1) {
         // Nếu chưa thích, thêm user vào danh sách likes
