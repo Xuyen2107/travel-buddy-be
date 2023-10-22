@@ -27,14 +27,12 @@ const UserController = {
       const { id } = req.user;
       const body = req.body;
 
-      body.updateAt = new Date();
-
       const newUser = await UserModel.findByIdAndUpdate(
          id,
          {
             $set: body,
          },
-         { new: true }
+         { new: true },
       ).select("-password");
 
       res.status(200).json({
@@ -65,9 +63,8 @@ const UserController = {
          id,
          {
             avatar: avatarUrl,
-            updateAt: new Date(),
          },
-         { new: true }
+         { new: true },
       ).select("-password");
 
       res.status(200).json({
@@ -96,9 +93,8 @@ const UserController = {
          id,
          {
             password: haledPassword,
-            updateAt: new Date(),
          },
-         { new: true }
+         { new: true },
       );
 
       res.status(200).json({
