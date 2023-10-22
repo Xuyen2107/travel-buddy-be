@@ -155,12 +155,12 @@ const postController = {
       }
 
       const likedIndex = post.likes.findIndex(
-        (like) => like.user.toString() === userId.toString()
+        (like) => like.author.toString() === userId.toString()
       );
 
       if (likedIndex === -1) {
         // Nếu chưa thích, thêm user vào danh sách likes
-        post.likes.push({ user: userId });
+        post.likes.push({ author: userId });
 
         await post.save();
         res.status(200).json({ message: "Đã thích bài viết này" });
@@ -178,7 +178,6 @@ const postController = {
   commentOnPost: async (req, res) => {
     try {
       const postId = req.params.id;
-      const name = req.user.userName;
       const userId = req.user.id;
       const { text } = req.body;
 
@@ -190,7 +189,6 @@ const postController = {
 
       const comment = new CommentModel({
         author: userId,
-        user: name,
         text: text,
         idPost: postId,
       });
@@ -199,9 +197,10 @@ const postController = {
 
       await post.save();
 
-      res
-        .status(200)
-        .json({ message: "bài post đã được bình luận", data: post.comments });
+      res.status(200).json({
+        message: "bài post đã được bình luận",
+        data: post.comments,
+      });
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
