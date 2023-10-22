@@ -1,33 +1,90 @@
 import mongoose from "mongoose";
 
 const postSchema = new mongoose.Schema({
-   author: {
-      type: mongoose.Schema.Types.ObjectId,
-      required: true,
-   },
+  author: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Users",
+  },
 
-   vacation: {
-      type: String,
-      required: true,
-   },
+  vacation: {
+    type: String,
+    default: "kỳ nghỉ hiện tại",
+  },
 
-   content: {
-      type: String,
-      required: true,
-   },
+  milestones: [
+    {
+      time: {
+        type: String,
+        required: true,
+      },
+      description: {
+        type: String,
+        required: true,
+      },
+    },
+  ],
 
-   images: {
-      type: Array,
-      required: true,
-   },
-
-   createAt: {
-      type: String,
-   },
-
-   updateAt: {
-      type: String,
-   },
+  content: {
+    type: String,
+    required: true,
+  },
+  mediaUrls: {
+    type: [String],
+    default: [],
+  },
+  checkIn: {
+    type: String,
+    default: "",
+  },
+  likes: [
+    {
+      author: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Users",
+      },
+      createAt: {
+        type: Date,
+        default: Date.now(),
+      },
+    },
+  ],
+  comments: [
+    {
+      author: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Users",
+      },
+      idPost: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Posts",
+      },
+      text: {
+        type: String,
+      },
+    },
+  ],
+  shares: [
+    {
+      user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Users",
+      },
+      createAt: {
+        type: Date,
+        default: Date.now(),
+      },
+    },
+  ],
+  createAt: {
+    type: Date,
+    default: Date.Now,
+  },
+  updateAt: {
+    type: Date,
+    default: Date.Now,
+  },
 });
 
 const PostModel = mongoose.model("Posts", postSchema);
+
+export default PostModel;

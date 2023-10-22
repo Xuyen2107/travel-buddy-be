@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import { formatDate } from "../utils/formatDate.js";
 
 const UserSchema = new mongoose.Schema({
    fullName: {
@@ -10,8 +9,6 @@ const UserSchema = new mongoose.Schema({
    userName: {
       type: String,
       require: true,
-      min: 6,
-      max: 20,
       unique: true,
    },
 
@@ -29,8 +26,6 @@ const UserSchema = new mongoose.Schema({
    password: {
       type: String,
       require: true,
-      min: 6,
-      max: 10,
    },
 
    avatar: {
@@ -45,7 +40,7 @@ const UserSchema = new mongoose.Schema({
       type: String,
    },
 
-   sex: {
+   gender: {
       type: String,
    },
 
@@ -54,11 +49,12 @@ const UserSchema = new mongoose.Schema({
    },
 
    createAt: {
-      type: String,
+      type: Date,
+      default: Date.now(),
    },
 
    updateAt: {
-      type: String,
+      type: Date,
    },
 });
 
