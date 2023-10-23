@@ -36,11 +36,6 @@ const AlbumSchema = new mongoose.Schema({
    },
 });
 
-AlbumSchema.pre("save", function (next) {
-   this.updateAt = new Date();
-   next();
-});
-
 const AlbumModel = mongoose.model("Albums", AlbumSchema);
 
 export default AlbumModel;

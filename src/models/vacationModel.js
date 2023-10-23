@@ -80,6 +80,7 @@ const VacationSchema = new mongoose.Schema({
 VacationSchema.plugin(autopopulate);
 
 // Middleware để tự động cập nhật trường updateAt
+// Cập nhật lúc lưu, lúc update ko tự cập nhât vì ko dùng save()
 VacationSchema.pre("save", function (next) {
    this.updateAt = new Date();
    next();

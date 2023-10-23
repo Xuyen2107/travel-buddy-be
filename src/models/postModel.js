@@ -8,7 +8,6 @@ const PostSchema = new mongoose.Schema({
 
    vacation: {
       type: String,
-      default: "kỳ nghỉ hiện tại",
    },
 
    milestones: [
@@ -30,8 +29,7 @@ const PostSchema = new mongoose.Schema({
    },
 
    mediaUrls: {
-      type: [String],
-      default: [],
+      type: String,
    },
 
    checkIn: {
@@ -47,7 +45,7 @@ const PostSchema = new mongoose.Schema({
          },
          createAt: {
             type: Date,
-            default: Date.now(),
+            default: new Date(),
          },
       },
    ],
@@ -73,11 +71,6 @@ const PostSchema = new mongoose.Schema({
    updateAt: {
       type: Date,
    },
-});
-
-PostSchema.pre("save", function (next) {
-   this.updateAt = new Date();
-   next();
 });
 
 const PostModel = mongoose.model("Posts", PostSchema);

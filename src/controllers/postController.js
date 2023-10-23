@@ -1,7 +1,11 @@
-import mongoose from "mongoose";
-import CommentModel from "../models/commentModel.js";
+import asyncHandler from "express-async-handler";
 import PostModel from "../models/postModel.js";
-import UserModel from "../models/userModel.js";
+
+// Một dạng custom error cá nhân giúp in ra lỗi, chỉ cần truyền tham số statusCode và chuỗi message
+import UserError from "../utils/userError.js";
+
+// Function uploadFile làm code ngắn hơn, chỉ cần truyền file đầu vào
+import { uploadImage } from "../services/uploadImage.js";
 
 const postController = {
    //[Get] /post
@@ -11,200 +15,171 @@ const postController = {
       });
    },
 
-   //[Post]
-   //Create a new post
+   //[Post]   Create a new post
+   createPost: asyncHandler(async (req, res) => {
+      const { vacation, milestones, content, checkIn } = req.body;
+      const files = req.files;
+      const userId = req.user.id;
 
-   createPost: async (req, res) => {
-      try {
-         const { vacation, milestones, content, mediaUrls, checkIn } = req.body;
-
-         const userId = req.user.id;
-
-         const newPost = new PostModel({
-            author: userId,
-            vacation,
-            milestones,
-            content,
-            mediaUrls,
-            checkIn,
-         });
-         await newPost.save();
-
-         res.status(200).json({
-            data: newPost,
-         });
-      } catch (error) {
-         res.status(500).json({ message: error.message });
+      if (!files) {
+         throw new UserError(404, "Bạn chưa chọn ảnh=");
       }
-   },
 
-   //[Get] /post/all
-   // get all new feed
+      const uploadPromises = files.map(async (item) => {
+         const image = await uploadImage(item);
 
-   getAllPosts: async (req, res) => {
-      try {
-         const posts = await PostModel.find();
+         return image;
+      });
 
-         res.status(200).json({ data: posts });
-      } catch (error) {
-         res.status(500).json({ message: error.message });
+      const imageUrl = await Promise.all(uploadPromises);
+
+      const newPost = new PostModel({
+         author: userId,
+         vacation,
+         milestones,
+         content,
+         mediaUrls: imageUrl,
+         checkIn,
+      });
+
+      await newPost.save();
+
+      res.status(200).json({
+         data: newPost,
+      });
+   }),
+
+   //[Get] /post/:id   //get a post
+   getPost: asyncHandler(async (req, res) => {
+      const postId = req.params.id;
+
+      const post = await PostModel.findById(postId).populate({
+         path: "author",
+         select: "fullName userName avatar",
+      });
+
+      if (!post) {
+         throw new UserError(404, "Không tìm thấy bài viết");
       }
-   },
 
-   //[Get] /post/:id
-   //get a post
-   getSinglePost: async (req, res) => {
-      try {
-         const postId = req.params.id;
+      res.status(200).json({
+         data: post,
+      });
+   }),
 
-         const post = await PostModel.findById(postId).populate({
-            path: "author",
-            select: "fullName phoneNumber userName",
-         });
+   //[Get] /post/all   // get all new feed
+   getAllPosts: asyncHandler(async (req, res) => {
+      const posts = await PostModel.find();
 
-         res.status(200).json({ data: post });
-      } catch (error) {
-         res.status(500).json({ message: error.message });
+      if (!posts) {
+         throw new UserError(404, "Chưa có bài viết nào trong hệ thống");
       }
-   },
+
+      res.status(200).json({ data: posts });
+   }),
 
    //[Get] /post/owners/:id
    //Get all post owners
 
-   getAllOwnerPosts: async (req, res) => {
-      try {
-         const userId = req.user.id;
+   getAllPostsByUser: asyncHandler(async (req, res) => {
+      const userId = req.user.id;
 
-         const posts = await PostModel.find({ author: userId });
+      const posts = await PostModel.find({ author: userId });
 
-         if (!posts) {
-            return res.status(404).json("Không tìm thấy bất kỳ bài viết nào của user");
-         }
-         res.status(201).json({ data: posts });
-      } catch (error) {
-         res.status(500).json({ message: error.message });
+      if (!posts) {
+         throw new UserError(404, "Không tìm thấy bất kỳ bài viết nào của user");
       }
-   },
+
+      res.status(201).json({
+         data: posts,
+      });
+   }),
 
    //[Put] /post/:id
    //Update a post
 
-   updatePost: async (req, res) => {
-      try {
-         const postId = req.params.id;
-         const { vacation, milestones, content, mediaUrls, checkIn } = req.body;
+   updatePost: asyncHandler(async (req, res) => {
+      const postId = req.params.id;
+      const body = req.body;
+      const files = req.files;
+      const userId = req.user.id;
 
-         const userId = req.user.id;
+      if (files) {
+         const uploadPromises = files.map(async (item) => {
+            const image = await uploadImage(item);
 
-         const updatePost = await PostModel.findByIdAndUpdate(
-            postId,
-            {
-               author: userId,
-               vacation,
-               milestones,
-               content,
-               mediaUrls,
-               checkIn,
-               updateAt: Date.now(),
-            },
-            { new: true },
-         );
-
-         if (!updatePost) {
-            return res.status(404).json({ message: "bài post không tồn tại" });
-         }
-
-         res.status(200).json({ data: updatePost });
-      } catch (error) {
-         res.status(500).json({ message: error.message });
-      }
-   },
-
-   //[Delete] /post/:id
-   //delete a post
-
-   removePost: async (req, res) => {
-      try {
-         const postId = req.params.id;
-
-         const deletePost = await PostModel.findByIdAndDelete(postId);
-
-         if (!deletePost) {
-            return res.status(404).json({ message: "bài Post không tồn tại" });
-         }
-
-         res.status(200).json({ message: "Bài post đã được xóa thành công" });
-      } catch (error) {
-         res.status(500).json({ message: error.message });
-      }
-   },
-
-   //[Post] /post/:id/like
-   // Like a post
-   likePost: async (req, res) => {
-      try {
-         const postId = req.params.id;
-         const userId = req.user.id;
-
-         const post = await PostModel.findById(postId);
-
-         if (!post) {
-            return res.status(404).json({ message: "Bài post không tồn tại" });
-         }
-
-         if (!post) {
-            return res.status(404).json({ message: "Bài post không tồn tại" });
-         }
-
-         const likedIndex = post.likes.findIndex((like) => like.author.toString() === userId.toString());
-
-         if (likedIndex === -1) {
-            // Nếu chưa thích, thêm user vào danh sách likes
-            post.likes.push({ author: userId });
-
-            await post.save();
-            res.status(200).json({ message: "Đã thích bài viết này" });
-         } else {
-            // Nếu đã thích, xóa user ra khỏi danh sách likes
-            post.likes.splice(likedIndex, 1);
-            await post.save();
-            res.status(200).json({ message: "Bài viết đã bỏ thích" });
-         }
-      } catch (error) {
-         res.status(500).json({ message: error.message });
-      }
-   },
-
-   commentOnPost: async (req, res) => {
-      try {
-         const postId = req.params.id;
-         const userId = req.user.id;
-         const { text } = req.body;
-
-         const post = await PostModel.findById(postId);
-
-         if (!post) {
-            return res.status(404).json({ message: "bài post này không tồn tại" });
-         }
-
-         const comment = new CommentModel({
-            author: userId,
-            text: text,
-            idPost: postId,
+            return image;
          });
 
-         post.comments.push(comment);
+         const imageUrl = Promise.all(uploadPromises);
+
+         body.mediaUrls.push(...imageUrl);
+      }
+
+      body.updateAt = new Date();
+
+      const updatePost = await PostModel.findByIdAndUpdate(
+         postId,
+         {
+            $set: body,
+         },
+         { new: true },
+      );
+
+      if (!updatePost) {
+         throw new UserError(404, "Bài post không tồn tại");
+      }
+
+      res.status(200).json({
+         data: updatePost,
+      });
+   }),
+
+   //[Delete] /post/:id  //delete a post
+   removePost: asyncHandler(async (req, res) => {
+      const postId = req.params.id;
+
+      const deletePost = await PostModel.findByIdAndDelete(postId);
+
+      if (!deletePost) {
+         throw new UserError(404, "bài Post không tồn tại");
+      }
+
+      res.status(200).json({
+         message: "Bài post đã được xóa thành công",
+      });
+   }),
+
+   //[Post] /post/:id/like // Like a post
+   likePost: asyncHandler(async (req, res) => {
+      const postId = req.params.id;
+      const userId = req.user.id;
+
+      const post = await PostModel.findById(postId);
+
+      if (!post) {
+         throw new UserError(404, "Bài post không tồn tại");
+      }
+
+      const likedIndex = post.likes.findIndex((like) => like.author.toString() === userId.toString());
+
+      if (likedIndex === -1) {
+         // Nếu chưa thích, thêm user vào danh sách likes
+         post.likes.push({ author: userId });
 
          await post.save();
-
          res.status(200).json({
-            message: "bài post đã được bình luận",
-            data: post.comments,
+            message: "Đã thích bài viết này",
          });
-      } catch (error) {
-         res.status(500).json({ message: error.message });
+      } else {
+         // Nếu đã thích, xóa user ra khỏi danh sách likes
+         post.likes.splice(likedIndex, 1);
+         await post.save();
+         res.status(200).json({
+            message: "Bài viết đã bỏ thích",
+         });
       }
-   },
+   }),
 };
 
 export default postController;
