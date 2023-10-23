@@ -1,8 +1,11 @@
 import asyncHandler from "express-async-handler";
-import { v2 as cloudinary } from "cloudinary";
-import fs from "fs";
 import AlbumModel from "../models/albumModel.js";
-import UserModel from "../models/userModel.js";
+
+// Function uploadFile làm code ngắn hơn, chỉ cần truyền fike đầu vào
+import { uploadImage } from "../services/uploadImage.js";
+
+// Một dạng custom error cá nhân giúp in ra lỗi, chỉ cần truyền tham số statusCode và chuỗi message
+import UserError from "../utils/userError.js";
 
 const AlbumController = {
    //[Get] /album
@@ -12,44 +15,28 @@ const AlbumController = {
       });
    },
 
-   //[Post]
-   // create a new album
-
+   //[Post] create a new album
    createAlbum: asyncHandler(async (req, res) => {
-      const { nameAlbum, isPublic } = req.body;
       const userId = req.user.id;
-      const file = req.file["avatarAlbum"];
-      const files = req.files["images"];
+      const { nameAlbum } = req.body;
+      const file = req.files;
+      const avatarAlbum = file["avatarAlbum"] === undefined ? null : file["avatarAlbum"][0];
+      const images = file["images"];
 
-      if (!file) {
-         return res.status(404).json({
-            message: "Bạn vui lòng chọn ảnh đại diện cho album của bạn",
-         });
+      if (!avatarAlbum) {
+         throw new UserError(404, "Bạn vui lòng chọn ảnh đại diện cho album của bạn");
       }
 
-      if (!files) {
-         return res.status(404).json({
-            message: "Bạn vui lòng chọn ảnh đại diện cho album của bạn",
-         });
+      if (!images) {
+         throw new UserError(404, "Bạn vui lòng chọn ảnh cho album của bạn");
       }
 
-      const result = await cloudinary.uploader.upload(file.path, {
-         resource_type: "auto",
-         folder: "Travel_Buddy",
-      });
+      const avatarAlbumUrl = await uploadImage(avatarAlbum);
 
-      const avatarAlbum = result && result.secure_url;
-      fs.unlinkSync(file.path);
+      const uploadPromises = images.map(async (item) => {
+         const image = await uploadImage(item);
 
-      const uploadPromises = files.map(async (item) => {
-         const result = await cloudinary.uploader.upload(item.path, {
-            resource_type: "auto",
-            folder: "Travel_Buddy",
-         });
-
-         fs.unlinkSync(item.path);
-
-         return result.secure_url;
+         return image;
       });
 
       const albumUrl = await Promise.all(uploadPromises);
@@ -57,8 +44,7 @@ const AlbumController = {
       const newAlbum = new AlbumModel({
          author: userId,
          nameAlbum,
-         avatarAlbum: avatarAlbum,
-         isPublic,
+         avatarAlbum: avatarAlbumUrl,
          images: albumUrl,
       });
 
@@ -69,17 +55,14 @@ const AlbumController = {
       });
    }),
 
-   //[Get] /album/:id
-   //get a album
+   //[Get] /album/:id get a album
    getAlbum: asyncHandler(async (req, res) => {
       const albumId = req.params.id;
 
       const album = await AlbumModel.findById(albumId);
 
       if (!album) {
-         return res.status(404).json({
-            message: "Không tìm thấy album",
-         });
+         throw new UserError(404, "Không tìm thấy album");
       }
 
       res.status(200).json({
@@ -87,18 +70,14 @@ const AlbumController = {
       });
    }),
 
-   //[Get] /album/owners/:id
-   //Get all album owners
-
+   //[Get] /album/owners/:id Get all album owners
    getAllAlbums: asyncHandler(async (req, res) => {
       const userId = req.user.id;
 
       const album = await AlbumModel.find({ author: userId });
 
       if (!album) {
-         return res.status(404).json({
-            message: "Không tìm thấy bất kỳ bài viết nào của user",
-         });
+         throw new UserError(404, "Không tìm thấy bất kỳ bài viết nào của user");
       }
 
       res.status(201).json({
@@ -106,41 +85,32 @@ const AlbumController = {
       });
    }),
 
-   //[Put] /album/:id
-   //Update a album
-
+   //[Put] /album/:id Update a album
    updateAlbum: asyncHandler(async (req, res) => {
       const albumId = req.params.id;
       const body = req.body;
-      const file = req.file["avatarAlbum"];
-      const files = req.files["images"];
+      const file = req.files;
+      const avatarAlbum = file["avatarAlbum"] === undefined ? null : file["avatarAlbum"][0];
+      const images = file["images"];
+      console.log(avatarAlbum);
 
-      if (file) {
-         const result = await cloudinary.uploader.upload(file.path, {
-            resource_type: "auto",
-            folder: "Travel_Buddy",
-         });
-
-         body.avatarAlbum = result && result.secure_url;
-         fs.unlinkSync(file.path);
+      if (avatarAlbum) {
+         body.avatarAlbum = await uploadImage(avatarAlbum);
       }
 
-      if (files) {
-         const uploadPromises = files.map(async (item) => {
-            const result = await cloudinary.uploader.upload(item.path, {
-               resource_type: "auto",
-               folder: "Travel_Buddy",
-            });
+      if (images) {
+         const uploadPromises = images.map(async (item) => {
+            const image = await uploadImage(item);
 
-            fs.unlinkSync(item.path);
-
-            return result.secure_url;
+            return image;
          });
 
          const albumUrl = await Promise.all(uploadPromises);
 
-         body.images = [...body.images, albumUrl];
+         body.images.push(...albumUrl);
       }
+
+      body.updateAt = new Date();
 
       const updateAlbum = await AlbumModel.findByIdAndUpdate(
          albumId,
@@ -151,27 +121,22 @@ const AlbumController = {
       );
 
       if (!updateAlbum) {
-         return res.status(404).json({
-            message: "bài album không tồn tại",
-         });
+         throw new UserError(404, "Bài album không tồn tại");
       }
+
       res.status(200).json({
          data: updateAlbum,
       });
    }),
 
-   //[Delete] /album/:id
-   //delete a album
-
+   //[Delete] /album/:id delete a album
    removeAlbum: asyncHandler(async (req, res) => {
       const albumId = req.params.id;
 
       const deleteAlbum = await AlbumModel.findByIdAndDelete(albumId);
 
       if (!deleteAlbum) {
-         return res.status(404).json({
-            message: "bài album không tồn tại",
-         });
+         throw new UserError(404, "Bài album không tồn tại");
       }
 
       res.status(200).json({

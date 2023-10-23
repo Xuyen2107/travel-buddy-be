@@ -9,8 +9,7 @@ const vacationRouter = express.Router();
 vacationRouter.post("/create", uploadFile.single("Vacation"), validationMiddleware(vacationSchema), VacationController.createVacation);
 vacationRouter.get("/:id", VacationController.getVacation);
 vacationRouter.get("/all", VacationController.getAllVacations);
-vacationRouter.put("/:id/update", validationMiddleware(vacationSchema), VacationController.updateVacation);
+vacationRouter.put("/:id/update", uploadFile.single("Vacation"), VacationController.updateVacation);
 vacationRouter.delete("/:id/remove", VacationController.removeVacation);
-vacationRouter.delete("/remove-all", VacationController.removeAllVacations);
 
 export default vacationRouter;

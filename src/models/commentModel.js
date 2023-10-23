@@ -28,11 +28,6 @@ const CommentSchema = new mongoose.Schema({
    },
 });
 
-CommentSchema.pre("save", function (next) {
-   this.updateAt = new Date();
-   next();
-});
-
 const CommentModel = mongoose.model("Comments", CommentSchema);
 
 export default CommentModel;

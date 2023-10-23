@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import bcrypt from "bcrypt";
 
 const UserSchema = new mongoose.Schema({
    fullName: {
@@ -58,9 +59,19 @@ const UserSchema = new mongoose.Schema({
    },
 });
 
-UserSchema.pre("save", function (next) {
-   this.updateAt = new Date();
-   next();
+UserSchema.pre("save", async function (next) {
+   if (!this.isModified("password")) {
+      return next();
+   }
+
+   try {
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(this.password, salt);
+      this.password = hashedPassword;
+      next();
+   } catch (error) {
+      return next(error);
+   }
 });
 
 const UserModel = mongoose.model("Users", UserSchema);

@@ -1,18 +1,14 @@
-import mongoose from "mongoose";
+import UserError from "../utils/userError.js";
 
 export const errorHandlerMiddleware = (err, req, res, next) => {
-   const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
-   // const id = req.params.id;
-
-   // if (!mongoose.Types.ObjectId.isValid(id)) {
-   //    return res.status(404).json({
-   //       message: "Id không hợp lệ",
-   //    });
-   // }
-
-   res.status(statusCode).json({
-      message: err.message,
-      statusCode,
-      stack: err.stack,
-   });
+   if (err instanceof UserError) {
+      res.status(err.statusCode).json({
+         message: err.message,
+      });
+   } else {
+      res.status(500).json({
+         message: err.message || "Lỗi không xác định",
+         stack: err.stack,
+      });
+   }
 };
