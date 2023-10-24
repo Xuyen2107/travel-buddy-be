@@ -20,11 +20,13 @@ const UserController = {
    }),
 
    updateUser: asyncHandler(async (req, res) => {
-      const { id } = req.user;
+      const userId = req.user.id;
       const body = req.body;
 
+      body.updateAt = new Date();
+
       const newUser = await UserModel.findByIdAndUpdate(
-         id,
+         userId,
          {
             $set: body,
          },
@@ -37,7 +39,7 @@ const UserController = {
    }),
 
    uploadAvatar: asyncHandler(async (req, res) => {
-      const { id } = req.user;
+      const userId = req.user.id;
       const file = req.file;
 
       if (!file) {
@@ -47,7 +49,7 @@ const UserController = {
       const avatarUrl = await uploadImage(file);
 
       const updateUser = await UserModel.findByIdAndUpdate(
-         id,
+         userId,
          {
             avatar: avatarUrl,
          },
@@ -60,12 +62,12 @@ const UserController = {
    }),
 
    updatePassword: asyncHandler(async (req, res) => {
-      const { id } = req.user;
+      const userId = req.user.id;
       const { password, newPassword } = req.body;
 
-      const existingUser = await UserModel.findById(id).select("password");
+      const user = await UserModel.findById(id).select("password");
 
-      const isMatchPassword = await bcrypt.compare(password, existingUser.password);
+      const isMatchPassword = await bcrypt.compare(password, user.password);
 
       if (!isMatchPassword) {
          throw new UserError(400, "Mật khẩu chưa đúng");
@@ -75,7 +77,7 @@ const UserController = {
       const haledPassword = await bcrypt.hash(newPassword, salt);
 
       await UserModel.findByIdAndUpdate(
-         id,
+         userId,
          {
             password: haledPassword,
          },

@@ -1,7 +1,7 @@
 import fs from "fs";
 import multer from "multer";
 
-const UPLOAD_DIRECTORY = "uploads/";
+const UPLOAD_DIRECTORY = "src/uploads/";
 
 if (!fs.existsSync(UPLOAD_DIRECTORY)) {
    fs.mkdirSync(UPLOAD_DIRECTORY);

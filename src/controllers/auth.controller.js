@@ -76,9 +76,9 @@ const AuthController = {
    }),
 
    profile: asyncHandler(async (req, res) => {
-      const { id } = req.user;
+      const userId = req.user.id;
 
-      const currentUser = await UserModel.findById(id).select("-password");
+      const currentUser = await UserModel.findById(userId).select("-password");
 
       res.status(200).json({
          userInfo: currentUser,

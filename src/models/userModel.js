@@ -21,6 +21,7 @@ const UserSchema = new mongoose.Schema({
 
    phoneNumber: {
       type: String,
+      require: true,
       unique: true,
    },
 
@@ -51,7 +52,7 @@ const UserSchema = new mongoose.Schema({
 
    createAt: {
       type: Date,
-      default: Date.now(),
+      default: new Date(),
    },
 
    updateAt: {

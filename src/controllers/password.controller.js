@@ -42,11 +42,15 @@ const PasswordController = {
    verifyPassword: asyncHandler(async (req, res) => {
       const { email, otp, newPassword } = req.body;
       if (!email) {
-         throw new UserError(404, "Bạn chưa nhậpp email");
+         throw new UserError(404, "Bạn chưa nhập email");
       }
 
       if (!otp) {
          throw new UserError(404, "Bạn chưa nhập otp");
+      }
+
+      if (!newPassword) {
+         throw new UserError(404, "Bạn chưa nhập mật khẩu mới");
       }
 
       const existingOtp = await OtpModel.findOne({ email });
