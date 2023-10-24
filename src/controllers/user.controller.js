@@ -1,8 +1,8 @@
 import bcrypt from "bcrypt";
 import asyncHandler from "express-async-handler";
-import { v2 as cloudinary } from "cloudinary";
-import fs from "fs";
 import UserModel from "../models/userModel.js";
+import UserError from "../utils/userError.js";
+import { uploadImage } from "../services/uploadImage.js";
 
 const UserController = {
    getUser: asyncHandler(async (req, res) => {
@@ -11,9 +11,7 @@ const UserController = {
       const user = await UserModel.findById(userId).select("-password");
 
       if (!user) {
-         res.status(404).json({
-            message: "Không tìm thấy người dùng",
-         });
+         throw new UserError(404, "Không tìm thấy người dùng");
       }
 
       return res.status(200).json({
@@ -22,56 +20,70 @@ const UserController = {
    }),
 
    updateUser: asyncHandler(async (req, res) => {
-      const userId = req.params.id;
+      const { id } = req.user;
       const body = req.body;
 
-      if (body.id === userId) {
-         body.updateAt = new Date();
+      const newUser = await UserModel.findByIdAndUpdate(
+         id,
+         {
+            $set: body,
+         },
+         { new: true },
+      ).select("-password");
 
-         const newUser = await UserModel.findByIdAndUpdate(
-            userId,
-            {
-               $set: body,
-            },
-            { new: true }
-         ).select("-password");
-
-         res.status(200).json({
-            message: " Cập nhật thành công",
-            userUpdate: newUser,
-         });
-      }
-
-      return res.status(403).json({
-         message: "Bạn chỉ được cập nhật thông tin của bạn",
+      res.status(200).json({
+         userUpdate: newUser,
       });
    }),
 
    uploadAvatar: asyncHandler(async (req, res) => {
+      const { id } = req.user;
       const file = req.file;
-      const userId = req.params.id;
 
-      const result = await cloudinary.uploader.upload(file.path, {
-         resource_type: "auto",
-         folder: "Travel_Buddy",
-      });
+      if (!file) {
+         throw new UserError(404, "Bạn chưa chọn ảnh");
+      }
 
-      const avatarUrl = result && result.secure_url;
+      const avatarUrl = await uploadImage(file);
 
-      fs.unlinkSync(file.path);
-
-      const updateUser = await UserModel.findOneAndUpdate(
-         { _id: userId },
+      const updateUser = await UserModel.findByIdAndUpdate(
+         id,
          {
             avatar: avatarUrl,
-            updateAt: Date.now(),
          },
-         { new: true }
+         { new: true },
       ).select("-password");
 
       res.status(200).json({
-         message: "Cập nhật ảnh đại diện thành công",
          data: updateUser,
+      });
+   }),
+
+   updatePassword: asyncHandler(async (req, res) => {
+      const { id } = req.user;
+      const { password, newPassword } = req.body;
+
+      const existingUser = await UserModel.findById(id).select("password");
+
+      const isMatchPassword = await bcrypt.compare(password, existingUser.password);
+
+      if (!isMatchPassword) {
+         throw new UserError(400, "Mật khẩu chưa đúng");
+      }
+
+      const salt = await bcrypt.genSalt(10);
+      const haledPassword = await bcrypt.hash(newPassword, salt);
+
+      await UserModel.findByIdAndUpdate(
+         id,
+         {
+            password: haledPassword,
+         },
+         { new: true },
+      );
+
+      res.status(200).json({
+         message: "Cập nhật mật khẩu thành công",
       });
    }),
 };

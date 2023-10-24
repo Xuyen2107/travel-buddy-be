@@ -1,9 +1,14 @@
-export const errorHandleMiddleware = (err, req, res, next) => {
-   const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
+import UserError from "../utils/userError.js";
 
-   res.status(statusCode).json({
-      message: err.message,
-      statusCode,
-      stack: err.stack,
-   });
+export const errorHandlerMiddleware = (err, req, res, next) => {
+   if (err instanceof UserError) {
+      res.status(err.statusCode).json({
+         message: err.message,
+      });
+   } else {
+      res.status(500).json({
+         message: err.message || "Lỗi không xác định",
+         stack: err.stack,
+      });
+   }
 };
