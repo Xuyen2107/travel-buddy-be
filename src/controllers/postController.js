@@ -19,6 +19,7 @@ const postController = {
       const { vacation, milestones, content, mediaUrls, checkIn } = req.body;
 
       const userId = req.user.id;
+      
 
       const newPost = new PostModel({
         author: userId,
@@ -148,25 +149,27 @@ const postController = {
       const postId = req.params.id;
       const userId = req.user.id;
 
-      const post = await PostModel.findById(postId);
+      const post = await PostModel.findByIdAndUpdate(postId);
 
       if (!post) {
         return res.status(404).json({ message: "Bài post không tồn tại" });
       }
 
       const likedIndex = post.likes.findIndex(
-        (like) => like.user.toString() === userId.toString()
+        (like) => like.author.toString() === userId.toString()
       );
+      
 
       if (likedIndex === -1) {
         // Nếu chưa thích, thêm user vào danh sách likes
-        post.likes.push({ user: userId });
-
+        post.likes.push({ author: userId });
+        
         await post.save();
         res.status(200).json({ message: "Đã thích bài viết này" });
-      } else {
+      }  else {
         // Nếu đã thích, xóa user ra khỏi danh sách likes
         post.likes.splice(likedIndex, 1);
+        console.log("likedIndex",likedIndex);
         await post.save();
         res.status(200).json({ message: "Bài viết đã bỏ thích" });
       }
