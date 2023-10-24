@@ -1,8 +1,7 @@
 import mongoose from "mongoose";
-import autopopulate from "mongoose-autopopulate";
 
 const VacationSchema = new mongoose.Schema({
-    promoter: {
+    author: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Users",
         require: true,
@@ -13,19 +12,9 @@ const VacationSchema = new mongoose.Schema({
         require: true,
     },
 
-    images: {
-        type: Array,
-        items: {
-            type: String,
-        },
-    },
-
     description: {
         type: String,
-    },
-
-    numberUser: {
-        type: Number,
+        require: true,
     },
 
     listUser: [
@@ -36,17 +25,17 @@ const VacationSchema = new mongoose.Schema({
     ],
 
     isPublic: {
-        type: Boolean,
+        type: String,
         require: true,
     },
 
     startDay: {
-        type: Date,
+        type: String,
         require: true,
     },
 
     endDay: {
-        type: Date,
+        type: String,
         require: true,
     },
 
@@ -54,11 +43,12 @@ const VacationSchema = new mongoose.Schema({
         {
             time: {
                 type: String,
-                require: true,
+                required: true,
             },
+
             description: {
                 type: String,
-                require: true,
+                required: true,
             },
         },
     ],
@@ -74,21 +64,12 @@ const VacationSchema = new mongoose.Schema({
     },
 
     createAt: {
-        type: Date,
-        default: Date.now,
+        type: String,
     },
 
     updateAt: {
-        type: Date,
+        type: String,
     },
-});
-
-VacationSchema.plugin(autopopulate);
-
-// Middleware để tự động cập nhật trường updateAt
-VacationSchema.pre("save", function (next) {
-    this.updateAt = new Date();
-    next();
 });
 
 const VacationModel = mongoose.model("Vacations", VacationSchema);
