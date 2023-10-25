@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import autopopulate from "mongoose-autopopulate";
 
 const VacationSchema = new mongoose.Schema({
    author: {
@@ -12,9 +13,13 @@ const VacationSchema = new mongoose.Schema({
       require: true,
    },
 
-   description: {
+   avatarVacation: {
       type: String,
       require: true,
+   },
+
+   description: {
+      type: String,
    },
 
    listUser: [
@@ -25,17 +30,17 @@ const VacationSchema = new mongoose.Schema({
    ],
 
    isPublic: {
-      type: String,
+      type: Boolean,
       require: true,
    },
 
    startDay: {
-      type: String,
+      type: Date,
       require: true,
    },
 
    endDay: {
-      type: String,
+      type: Date,
       require: true,
    },
 
@@ -43,12 +48,11 @@ const VacationSchema = new mongoose.Schema({
       {
          time: {
             type: String,
-            required: true,
+            require: true,
          },
-
          description: {
             type: String,
-            required: true,
+            require: true,
          },
       },
    ],
@@ -64,12 +68,22 @@ const VacationSchema = new mongoose.Schema({
    },
 
    createAt: {
-      type: String,
+      type: Date,
+      default: new Date(),
    },
 
    updateAt: {
-      type: String,
+      type: Date,
    },
+});
+
+VacationSchema.plugin(autopopulate);
+
+// Middleware để tự động cập nhật trường updateAt
+// Cập nhật lúc lưu, lúc update ko tự cập nhât vì ko dùng save()
+VacationSchema.pre("save", function (next) {
+   this.updateAt = new Date();
+   next();
 });
 
 const VacationModel = mongoose.model("Vacations", VacationSchema);

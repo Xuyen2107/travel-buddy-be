@@ -1,17 +1,14 @@
 import express from "express";
+import uploadFile from "../configs/multer.config.js";
 import albumController from "../controllers/album.controller.js";
-import { authMiddleware } from "../middlewares/auth.middleware.js";
 
 const albumRouter = express.Router();
 
-albumRouter.use(authMiddleware);
-
 albumRouter.get("/", albumController.index);
-
-albumRouter.get("/:id", albumController.getSingleAlbum);
-albumRouter.get("/owners/:id", albumController.getAllOwnersAlbum);
-albumRouter.put("/:id", albumController.updateAlbum);
-albumRouter.delete("/:id", albumController.removeAlbum);
-albumRouter.post("/", albumController.createAlbum);
+albumRouter.post("/create", uploadFile.fields([{ name: "avatarAlbum" }, { name: "images" }]), albumController.createAlbum);
+albumRouter.get("/:id", albumController.getAlbum);
+albumRouter.get("/all/", albumController.getAllAlbums);
+albumRouter.put("/:id/update", uploadFile.fields([{ name: "avatarAlbum" }, { name: "images" }]), albumController.updateAlbum);
+albumRouter.delete("/:id/delete", albumController.removeAlbum);
 
 export default albumRouter;
