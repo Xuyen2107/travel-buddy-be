@@ -1,106 +1,107 @@
-import VacationModel from "../models/vacationModels.js";
+import asyncHandler from "express-async-handler";
+import VacationModel from "../models/vacationModel.js";
 
-class VacationController {
-    async index(req, res) {
-        try {
-            // Lấy danh sách tất cả các kỳ nghỉ từ cơ sở dữ liệu
-            const vacations = await VacationModel.find();
+// Một dạng custom error cá nhân giúp in ra lỗi, chỉ cần truyền tham số statusCode và chuỗi message
+import UserError from "../utils/userError.js";
 
-            // Trả về danh sách kỳ nghỉ dưới dạng JSON
-            res.status(200).json(vacations);
-        } catch (error) {
-            console.error(error);
-            res.status(500).json({ error: "Lỗi trong quá trình lấy danh sách kỳ nghỉ" });
-        }
-    }
+// Function uploadFile làm code ngắn hơn
+import { uploadImage } from "../services/uploadImage.js";
 
-    async create(req, res) {
-        const file = req.files;
-        console.log("🚀 ~ file: vacation.controller.js:19 ~ VacationController ~ create ~ file:", file);
-        const { promoter, title, images, description, numberUser, listUser, isPublic, startDay, endDay, milestones } =
-            req.body;
+const VacationController = {
+   createVacation: asyncHandler(async (req, res) => {
+      const file = req.file;
+      const { author, title, description, listUser, isPublic, startDay, endDay, milestones } = req.body;
 
-        try {
-            const newVacation = new VacationModel({
-                promoter,
-                title,
-                images,
-                description,
-                numberUser,
-                listUser,
-                isPublic,
-                startDay,
-                endDay,
-                milestones,
-            });
+      if (!file) {
+         throw new UserError(404, "Vui lòng chọn ảnh đại diện cho kì nghỉ");
+      }
 
-            await newVacation.save();
+      const vacationUrl = await uploadImage(file);
 
-            res.status(201).json(newVacation);
-        } catch (err) {
-            console.error(error);
-            res.status(500).json({ error: "Lỗi trong quá trình tạo kỳ nghỉ" });
-        }
-    }
+      const newVacation = new VacationModel({
+         author,
+         title,
+         avatarVacation: vacationUrl,
+         description,
+         listUser,
+         isPublic,
+         startDay,
+         endDay,
+         milestones,
+      });
 
-    async update(req, res) {
-        const vacationId = req.params.id;
-        const { promoter, title, images, description, numberUser, listUser, isPublic, startDay, endDay, milestones } =
-            req.body;
+      await newVacation.save();
 
-        try {
-            // Cập nhật thông tin kỳ nghỉ trong cơ sở dữ liệu
-            const updatedVacation = await VacationModel.findByIdAndUpdate(
-                vacationId,
-                {
-                    promoter,
-                    title,
-                    images,
-                    description,
-                    numberUser,
-                    listUser,
-                    isPublic,
-                    startDay,
-                    endDay,
-                    milestones,
-                },
-                { new: true } // Trả về bản ghi sau khi đã cập nhật
-            );
+      res.status(200).json({
+         data: newVacation,
+      });
+   }),
 
-            res.status(200).json(updatedVacation);
-        } catch (error) {
-            console.error(error);
-            res.status(500).json({ error: "Lỗi trong quá trình cập nhật kỳ nghỉ" });
-        }
-    }
+   getVacation: asyncHandler(async (req, res) => {
+      const vacationId = req.params.id;
 
-    async remove(req, res) {
-        const vacationId = req.params.id;
+      const vacation = await VacationModel.findById(vacationId);
 
-        try {
-            // Xóa kỳ nghỉ từ cơ sở dữ liệu
-            await VacationModel.findByIdAndDelete(vacationId);
+      if (!vacation) {
+         throw new UserError(404, "Không tìm thấy kì nghỉ");
+      }
 
-            res.status(200).json({ message: "Kỳ nghỉ đã được xóa" });
-        } catch (error) {
-            console.error(error);
-            res.status(500).json({ error: "Lỗi trong quá trình xóa kỳ nghỉ" });
-        }
-    }
+      res.status(200).json({
+         data: vacation,
+      });
+   }),
 
-    async removeAll(req, res) {
-        try {
-            // Thực hiện xóa tất cả các bản ghi trong cơ sở dữ liệu
-            await VacationModel.deleteMany({}); // YourModel thay thế bằng tên model thích hợp
+   getAllVacations: asyncHandler(async (req, res) => {
+      // Lấy danh sách tất cả các kỳ nghỉ từ cơ sở dữ liệu
+      const allVacations = await VacationModel.find();
 
-            return res.status(200).json({ message: "Tất cả bản ghi đã bị xóa." });
-        } catch (error) {
-            console.error(error);
-            return res.status(500).json({ error: "Lỗi trong quá trình xóa bản ghi." });
-        }
-    }
-}
+      if (!allVacations) {
+         throw new UserError(404, "Không có kì nghỉ nào trong hệ thống");
+      }
 
-const vactionController = new VacationController();
+      // Trả về danh sách kỳ nghỉ dưới dạng JSON
+      res.status(200).json({
+         data: allVacations,
+      });
+   }),
 
-export default vactionController;
+   updateVacation: asyncHandler(async (req, res) => {
+      const vacationId = req.params.id;
+      const file = req.file;
+      const body = req.body;
+
+      if (file) {
+         const vacationUrl = await uploadImage(file);
+
+         body.avatarVacation = vacationUrl;
+      }
+
+      body.updateAt = new Date();
+
+      // Cập nhật thông tin kỳ nghỉ trong cơ sở dữ liệu
+      const updatedVacation = await VacationModel.findByIdAndUpdate(
+         vacationId,
+         {
+            $set: body,
+         },
+         { new: true }, // Trả về bản ghi sau khi đã cập nhật
+      );
+
+      res.status(200).json({
+         data: updatedVacation,
+      });
+   }),
+
+   removeVacation: asyncHandler(async (req, res) => {
+      const vacationId = req.params.id;
+
+      // Xóa kỳ nghỉ từ cơ sở dữ liệu
+      await VacationModel.findByIdAndDelete(vacationId);
+
+      res.status(200).json({
+         message: "Kỳ nghỉ đã được xóa",
+      });
+   }),
+};
+
+export default VacationController;

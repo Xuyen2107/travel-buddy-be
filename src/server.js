@@ -21,6 +21,7 @@ app.use(cors("*"));
 
 app.use("/api/v1", appRoute);
 
+//middleware error trung tâm
 app.use(errorHandlerMiddleware);
 
 const PORT = process.env.PORT || 3001;

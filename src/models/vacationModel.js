@@ -1,75 +1,87 @@
 import mongoose from "mongoose";
 
 const VacationSchema = new mongoose.Schema({
-    author: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Users",
-        require: true,
-    },
+   author: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Users",
+      require: true,
+   },
 
-    title: {
-        type: String,
-        require: true,
-    },
+   title: {
+      type: String,
+      require: true,
+   },
 
-    description: {
-        type: String,
-        require: true,
-    },
+   description: {
+      type: String,
+   },
 
-    listUser: [
-        {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Users",
-        },
-    ],
+   numberUser: {
+      type: Number,
+   },
 
-    isPublic: {
-        type: String,
-        require: true,
-    },
+   listUser: [
+      {
+         type: mongoose.Schema.Types.ObjectId,
+         ref: "Users",
+      },
+   ],
 
-    startDay: {
-        type: String,
-        require: true,
-    },
+   isPublic: {
+      type: String,
+      require: true,
+   },
 
-    endDay: {
-        type: String,
-        require: true,
-    },
+   startDay: {
+      type: String,
+      require: true,
+   },
 
-    milestones: [
-        {
-            time: {
-                type: String,
-                required: true,
-            },
+   endDay: {
+      type: String,
+      require: true,
+   },
 
-            description: {
-                type: String,
-                required: true,
-            },
-        },
-    ],
+   milestones: [
+      {
+         time: {
+            type: String,
+            required: true,
+         },
 
-    views: {
-        type: Array,
-        default: [],
-    },
+         description: {
+            type: String,
+            required: true,
+         },
+      },
+   ],
 
-    likes: {
-        type: Array,
-        default: [],
-    },
+   views: {
+      type: Array,
+      default: [],
+   },
 
-    createAt: {
-        type: String,
-    },
+   likes: {
+      type: Array,
+      default: [],
+   },
 
-    updateAt: {
-        type: String,
-    },
+   createAt: {
+      type: String,
+   },
+
+   updateAt: {
+      type: String,
+   },
+});
+
+VacationSchema.plugin(autopopulate);
+
+// Middleware để tự động cập nhật trường updateAt
+// Cập nhật lúc lưu, lúc update ko tự cập nhât vì ko dùng save()
+VacationSchema.pre("save", function (next) {
+   this.updateAt = new Date();
+   next();
 });
 
 const VacationModel = mongoose.model("Vacations", VacationSchema);
