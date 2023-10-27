@@ -20,7 +20,6 @@ const postController = {
       const { vacation, milestones, content, checkIn } = req.body;
       const files = req.files;
       const userId = req.user.id;
-      
 
       if (!files) {
          throw new UserError(404, "Bạn chưa chọn ảnh=");
@@ -162,25 +161,6 @@ const postController = {
          throw new UserError(404, "Bài post không tồn tại");
       }
 
-<<<<<<< HEAD
-      const likedIndex = post.likes.findIndex(
-        (like) => like.author.toString() === userId.toString()
-      );
-      
-
-      if (likedIndex === -1) {
-        // Nếu chưa thích, thêm user vào danh sách likes
-        post.likes.push({ author: userId });
-        
-        await post.save();
-        res.status(200).json({ message: "Đã thích bài viết này" });
-      }  else {
-        // Nếu đã thích, xóa user ra khỏi danh sách likes
-        post.likes.splice(likedIndex, 1);
-        console.log("likedIndex",likedIndex);
-        await post.save();
-        res.status(200).json({ message: "Bài viết đã bỏ thích" });
-=======
       const likedIndex = post.likes.findIndex((like) => like.author.toString() === userId.toString());
 
       if (likedIndex === -1) {
@@ -198,7 +178,6 @@ const postController = {
          res.status(200).json({
             message: "Bài viết đã bỏ thích",
          });
->>>>>>> 4617f6bc1084c65b08912bc3b9210cb4f654247c
       }
    }),
 };
