@@ -143,7 +143,7 @@ const PostController = {
       const postId = req.params.id;
       const userId = req.user.id;
 
-      const post = await PostModel.findById(postId);
+      const post = await PostModel.findByIdAndUpdate(postId);
 
       if (!post) {
          throw new BadRequestError(404, "Bài post không tồn tại");
@@ -156,16 +156,13 @@ const PostController = {
          post.likes.push({ author: userId });
 
          await post.save();
-         res.status(200).json({
-            message: "Đã thích bài viết này",
-         });
+         res.status(200).json({ message: "Đã thích bài viết này" });
       } else {
          // Nếu đã thích, xóa user ra khỏi danh sách likes
          post.likes.splice(likedIndex, 1);
+         console.log("likedIndex", likedIndex);
          await post.save();
-         res.status(200).json({
-            message: "Bài viết đã bỏ thích",
-         });
+         res.status(200).json({ message: "Bài viết đã bỏ thích" });
       }
    }),
 };
