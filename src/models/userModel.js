@@ -1,63 +1,59 @@
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 
-const UserSchema = new mongoose.Schema({
-   fullName: {
-      type: String,
-      require: true,
-   },
+const UserSchema = new mongoose.Schema(
+   {
+      fullName: {
+         type: String,
+         require: true,
+      },
 
-   userName: {
-      type: String,
-      require: true,
-      unique: true,
-   },
+      userName: {
+         type: String,
+         require: true,
+         unique: true,
+      },
 
-   email: {
-      type: String,
-      require: true,
-      unique: true,
-   },
+      email: {
+         type: String,
+         require: true,
+         unique: true,
+      },
 
-   phoneNumber: {
-      type: String,
-      unique: true,
-   },
+      phoneNumber: {
+         type: String,
+         require: true,
+         unique: true,
+      },
 
-   password: {
-      type: String,
-      require: true,
-   },
+      password: {
+         type: String,
+         require: true,
+      },
 
-   avatar: {
-      type: String,
-   },
+      avatar: {
+         type: String,
+      },
 
-   age: {
-      type: Number,
-   },
+      age: {
+         type: Number,
+      },
 
-   dateOfBirth: {
-      type: String,
-   },
+      dateOfBirth: {
+         type: String,
+      },
 
-   gender: {
-      type: String,
-   },
+      gender: {
+         type: String,
+      },
 
-   describe: {
-      type: String,
+      describe: {
+         type: String,
+      },
    },
-
-   createAt: {
-      type: Date,
-      default: Date.now(),
-   },
-
-   updateAt: {
-      type: Date,
-   },
-});
+   
+   { timestamps: true },
+);
 
 UserSchema.pre("save", async function (next) {
    if (!this.isModified("password")) {

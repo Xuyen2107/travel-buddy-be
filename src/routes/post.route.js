@@ -1,23 +1,14 @@
 import express from "express";
-import postController from "../controllers/postController.js";
-import { authMiddleware } from "../middlewares/auth.middleware.js";
-import { validationMiddleware } from "../middlewares/validate.middleware.js";
-import postSchema from "../validations/postValidation.js";
+import PostController from "../controllers/postController.js";
 
 const postRouter = express.Router();
 
-postRouter.use(authMiddleware);
-
-postRouter.get("/", postController.index);
-
-//Basic CRUD
-postRouter.get("/all", postController.getAllPosts);
-postRouter.get("/:id/all-post", postController.getAllPostsByUser);
-postRouter.get("/:id", postController.getPost);
-postRouter.put("/:id/update", postController.updatePost);
-postRouter.delete("/:id/delete", postController.removePost);
-postRouter.post("/create", postController.createPost);
-//Like
-postRouter.put("/:id/like", postController.likePost);
+postRouter.post("/create", PostController.createPost);
+postRouter.get("/all", PostController.getAllPosts);
+postRouter.get("/all-by-user", PostController.getAllPostsByUser);
+postRouter.get("/:postId", PostController.getPost);
+postRouter.put("/:postId/update", PostController.updatePost);
+postRouter.delete("/:postId/delete", PostController.removePost);
+postRouter.put("/:postId/like", PostController.likePost);
 
 export default postRouter;

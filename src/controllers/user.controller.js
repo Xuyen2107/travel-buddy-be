@@ -1,194 +1,71 @@
 import bcrypt from "bcrypt";
 import asyncHandler from "express-async-handler";
-import UserModel from "../models/userModel.js";
-import UserError from "../utils/userError.js";
 import { uploadImage } from "../services/uploadImage.js";
+import BadRequestError from "../errors/BadRequestError.js";
+import { userMessages } from "../utils/userMessage.js";
 
 const UserController = {
-  getUser: asyncHandler(async (req, res) => {
-    const userId = req.params.id;
+   getUser: asyncHandler(async (req, res) => {
+      const userId = req.params.userId;
 
-    const user = await UserModel.findById(userId).select("-password");
+      const user = await UserModel.findById(userId).select("-password");
 
-<<<<<<< HEAD
-    if (!user) {
-      return res.status(404).json({
-        message: "Không tìm thấy người dùng",
-=======
       if (!user) {
-         throw new UserError(404, "Không tìm thấy người dùng");
+         throw new BadRequestError(userMessages.notEmpty);
       }
 
       return res.status(200).json({
          data: user,
->>>>>>> a78df4924b233062186ad748fa2059382014ce5e
       });
-    }
+   }),
 
-    return res.status(200).json({
-      data: user,
-    });
-  }),
+   updateUser: asyncHandler(async (req, res) => {
+      const userId = req.user.userId;
+      const body = req.body;
 
-<<<<<<< HEAD
-  updateUser: asyncHandler(async (req, res) => {
-    const { id } = req.user;
-    const body = req.body;
+      body.updateAt = new Date();
 
-    body.updateAt = new Date();
-=======
-      const newUser = await UserModel.findByIdAndUpdate(
-         id,
-         {
-            $set: body,
-         },
-         { new: true },
-      ).select("-password");
->>>>>>> a78df4924b233062186ad748fa2059382014ce5e
+      const newUser = await UserModel.findByIdAndUpdate(userId, { $set: body }, { new: true }).select("-password");
 
-    const newUser = await UserModel.findByIdAndUpdate(
-      id,
-      {
-        $set: body,
-      },
-      { new: true }
-    ).select("-password");
-
-    res.status(200).json({
-      userUpdate: newUser,
-    });
-  }),
-
-  uploadAvatar: asyncHandler(async (req, res) => {
-    const { id } = req.user;
-    const file = req.file;
-
-    if (!file) {
-      return res.status(404).json({
-        message: "Bạn chưa chọn ảnh",
+      res.status(200).json({
+         userUpdate: newUser,
       });
-    }
+   }),
 
-    const result = await cloudinary.uploader.upload(file.path, {
-      resource_type: "auto",
-      folder: "Travel_Buddy",
-    });
+   uploadAvatar: asyncHandler(async (req, res) => {
+      const userId = req.user.userId;
+      const file = req.file;
 
-<<<<<<< HEAD
-    const avatarUrl = result && result.secure_url;
-
-    fs.unlinkSync(file.path);
-
-    const updateUser = await UserModel.findByIdAndUpdate(
-      id,
-      {
-        avatar: avatarUrl,
-        updateAt: new Date(),
-      },
-      { new: true }
-    ).select("-password");
-
-    res.status(200).json({
-      data: updateUser,
-    });
-  }),
-
-  changePassword: asyncHandler(async (req, res) => {
-    const { id } = req.user;
-    const { password, newPassword } = req.body;
-
-    const existingUser = await UserModel.findById(id).select("password");
-
-    const isMatchPassword = await bcrypt.compare(
-      password,
-      existingUser.password
-    );
-
-    if (!isMatchPassword) {
-      return res.status(400).json({
-        message: "Mật khẩu chưa đúng",
-      });
-    }
-
-    const salt = await bcrypt.genSalt(10);
-    const haledPassword = await bcrypt.hash(newPassword, salt);
-
-    await UserModel.findByIdAndUpdate(
-      id,
-      {
-        password: haledPassword,
-        updateAt: new Date(),
-      },
-      { new: true }
-    );
-
-    res.status(200).json({
-      message: "Cập nhật mật khẩu thành công",
-    });
-  }),
-=======
       if (!file) {
-         throw new UserError(404, "Bạn chưa chọn ảnh");
+         throw new BadRequestError(userMessages.avatar.notEmpty);
       }
 
       const avatarUrl = await uploadImage(file);
 
-      const updateUser = await UserModel.findByIdAndUpdate(
-         id,
-         {
-            avatar: avatarUrl,
-         },
-         { new: true },
-      ).select("-password");
->>>>>>> a78df4924b233062186ad748fa2059382014ce5e
+      const updateUser = await UserModel.findByIdAndUpdate(userId, { avatar: avatarUrl }, { new: true }).select("-password");
+   }),
 
-  forgotPassword: asyncHandler(async (req, res) => {
-    const { email } = req.body;
-
-    if (!email) {
-      return res.status(404).json({
-        message: "Bạn chưa nhập email",
-      });
-    }
-
-<<<<<<< HEAD
-    const otp = randomstring.generate(6);
-=======
    updatePassword: asyncHandler(async (req, res) => {
-      const { id } = req.user;
+      const userId = req.user.userId;
       const { password, newPassword } = req.body;
->>>>>>> a78df4924b233062186ad748fa2059382014ce5e
 
-    await sendEmail(email, otp);
+      const user = await UserModel.findById(userId).select("password");
 
-<<<<<<< HEAD
-    res.status(200).json({
-      message: "Mã otp đã gửi đến bạn",
-    });
-  }),
-=======
-      const isMatchPassword = await bcrypt.compare(password, existingUser.password);
+      const isMatchPassword = await bcrypt.compare(password, user.password);
 
       if (!isMatchPassword) {
-         throw new UserError(400, "Mật khẩu chưa đúng");
+         throw new BadRequestError(400, userMessages.password.passwordErr);
       }
 
       const salt = await bcrypt.genSalt(10);
       const haledPassword = await bcrypt.hash(newPassword, salt);
 
-      await UserModel.findByIdAndUpdate(
-         id,
-         {
-            password: haledPassword,
-         },
-         { new: true },
-      );
+      await UserModel.findByIdAndUpdate(userId, { password: haledPassword }, { new: true });
 
       res.status(200).json({
-         message: "Cập nhật mật khẩu thành công",
+         message: userMessages.successfully,
       });
    }),
->>>>>>> a78df4924b233062186ad748fa2059382014ce5e
 };
 
 export default UserController;

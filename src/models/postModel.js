@@ -43,23 +43,6 @@ const PostSchema = new mongoose.Schema({
             type: mongoose.Schema.Types.ObjectId,
             ref: "Users",
          },
-         createAt: {
-            type: Date,
-            default: new Date(),
-         },
-      },
-   ],
-
-   shares: [
-      {
-         user: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Users",
-         },
-         createAt: {
-            type: Date,
-            default: Date.now(),
-         },
       },
    ],
 
