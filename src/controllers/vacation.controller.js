@@ -1,25 +1,36 @@
 import asyncHandler from "express-async-handler";
+import { body } from "express-validator";
 import VacationModel from "../models/vacationModel.js";
-
-// Một dạng custom error cá nhân giúp in ra lỗi, chỉ cần truyền tham số statusCode và chuỗi message
-import UserError from "../utils/userError.js";
-
-// Function uploadFile làm code ngắn hơn
+import BadRequestError from "../errors/BadRequestError.js";
 import { uploadImage } from "../services/uploadImage.js";
+import vacationMessages from "../utils/vacationMessage.js";
 
 const VacationController = {
+   validateVacation: () => {
+      const validateVacation = [
+         body("title").notEmpty().withMessage(vacationMessages.title.notEmpty),
+         body("description").notEmpty().withMessage(vacationMessages.description.notEmpty),
+         body("listUser").isArray().withMessage(vacationMessages.listUser.isArray),
+         body("startDay").notEmpty().withMessage(vacationMessages.startDay.notEmpty),
+         body("endDay").notEmpty().withMessage(vacationMessages.endDay.notEmpty),
+         body("milestones").isArray().withMessage(vacationMessages.milestones.isArray).notEmpty().withMessage(vacationMessages.milestones.notEmpty),
+      ];
+
+      return validateVacation;
+   },
+
    createVacation: asyncHandler(async (req, res) => {
+      const userId = req.user.userId;
       const file = req.file;
-      const { author, title, description, listUser, isPublic, startDay, endDay, milestones } = req.body;
+      const { title, description, listUser, startDay, endDay, milestones } = req.body;
 
       if (!file) {
-         throw new UserError(404, "Vui lòng chọn ảnh đại diện cho kì nghỉ");
+         throw new BadRequestError(vacationMessages.avatarVacation.notEmpty);
       }
-
       const vacationUrl = await uploadImage(file);
 
-      const newVacation = new VacationModel({
-         author,
+      const newVacation = await VacationModel.create({
+         author: userId,
          title,
          avatarVacation: vacationUrl,
          description,
@@ -30,20 +41,18 @@ const VacationController = {
          milestones,
       });
 
-      await newVacation.save();
-
       res.status(200).json({
          data: newVacation,
       });
    }),
 
    getVacation: asyncHandler(async (req, res) => {
-      const vacationId = req.params.id;
+      const vacationId = req.params.vacationId;
 
       const vacation = await VacationModel.findById(vacationId);
 
       if (!vacation) {
-         throw new UserError(404, "Không tìm thấy kì nghỉ");
+         throw new BadRequestError(vacationMessages.notFound);
       }
 
       res.status(200).json({
@@ -56,7 +65,7 @@ const VacationController = {
       const allVacations = await VacationModel.find();
 
       if (!allVacations) {
-         throw new UserError(404, "Không có kì nghỉ nào trong hệ thống");
+         throw new BadRequestError(vacationMessages.notFound);
       }
 
       // Trả về danh sách kỳ nghỉ dưới dạng JSON
@@ -66,7 +75,7 @@ const VacationController = {
    }),
 
    updateVacation: asyncHandler(async (req, res) => {
-      const vacationId = req.params.id;
+      const vacationId = req.params.vacationId;
       const file = req.file;
       const body = req.body;
 
@@ -75,8 +84,6 @@ const VacationController = {
 
          body.avatarVacation = vacationUrl;
       }
-
-      body.updateAt = new Date();
 
       // Cập nhật thông tin kỳ nghỉ trong cơ sở dữ liệu
       const updatedVacation = await VacationModel.findByIdAndUpdate(
@@ -93,13 +100,13 @@ const VacationController = {
    }),
 
    removeVacation: asyncHandler(async (req, res) => {
-      const vacationId = req.params.id;
+      const vacationId = req.params.vacationId;
 
       // Xóa kỳ nghỉ từ cơ sở dữ liệu
       await VacationModel.findByIdAndDelete(vacationId);
 
       res.status(200).json({
-         message: "Kỳ nghỉ đã được xóa",
+         message: vacationMessages.successfully,
       });
    }),
 };

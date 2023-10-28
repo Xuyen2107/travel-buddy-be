@@ -24,7 +24,7 @@ app.use("/api/v1", appRoute);
 //middleware error trung tâm
 app.use(errorHandlerMiddleware);
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT;
 app.listen(PORT, () => {
    console.log(`Server is running on PORT ${PORT} at ${formatDate(new Date())}`);
 });
