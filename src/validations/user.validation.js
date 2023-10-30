@@ -3,6 +3,8 @@ import UserModel from "../models/userModel.js";
 import BadRequestError from "../errors/BadRequestError.js";
 import { userMessages } from "../utils/userMessage.js";
 
+
+
 const userValidation = (method) => {
    let validateUser = [];
 
