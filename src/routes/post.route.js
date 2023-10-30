@@ -1,14 +1,16 @@
 import express from "express";
-import postController from "../controllers/postController.js";
-import { authMiddleware } from "../middlewares/auth.middleware.js";
-import { validationMiddleware } from "../middlewares/validate.middleware.js";
-import postSchema from "../validations/postValidation.js";
+import PostController from "../controllers/postController.js";
+import uploadFile from "../configs/multer.config.js";
+import validationMiddleware from "../middlewares/validation.middleware.js";
 
 const postRouter = express.Router();
 
-postRouter.use(authMiddleware);
-
-postRouter.get("/", postController.index);
-postRouter.post("/", validationMiddleware(postSchema), postController.create);
+postRouter.post("/create", uploadFile.array("images"), PostController.validatePost, validationMiddleware, PostController.createPost);
+postRouter.get("/all", PostController.getAllPosts);
+postRouter.get("/all-by-user", PostController.getAllPostsByUser);
+postRouter.get("/:postId", PostController.getPost);
+postRouter.put("/:postId/update", PostController.updatePost);
+postRouter.delete("/:postId/delete", PostController.removePost);
+postRouter.put("/:postId/like", PostController.likePost);
 
 export default postRouter;

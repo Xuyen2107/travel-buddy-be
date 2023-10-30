@@ -1,19 +1,17 @@
 import bcrypt from "bcrypt";
 import asyncHandler from "express-async-handler";
-import { v2 as cloudinary } from "cloudinary";
-import fs from "fs";
-import UserModel from "../models/userModel.js";
+import { uploadImage } from "../services/uploadImage.js";
+import BadRequestError from "../errors/BadRequestError.js";
+import { userMessages } from "../utils/userMessage.js";
 
 const UserController = {
    getUser: asyncHandler(async (req, res) => {
-      const userId = req.params.id;
+      const userId = req.params.userId;
 
       const user = await UserModel.findById(userId).select("-password");
 
       if (!user) {
-         res.status(404).json({
-            message: "Không tìm thấy người dùng",
-         });
+         throw new BadRequestError(userMessages.notEmpty);
       }
 
       return res.status(200).json({
@@ -22,56 +20,50 @@ const UserController = {
    }),
 
    updateUser: asyncHandler(async (req, res) => {
-      const userId = req.params.id;
+      const userId = req.user.userId;
       const body = req.body;
 
-      if (body.id === userId) {
-         body.updateAt = new Date();
+      body.updateAt = new Date();
 
-         const newUser = await UserModel.findByIdAndUpdate(
-            userId,
-            {
-               $set: body,
-            },
-            { new: true }
-         ).select("-password");
+      const newUser = await UserModel.findByIdAndUpdate(userId, { $set: body }, { new: true }).select("-password");
 
-         res.status(200).json({
-            message: " Cập nhật thành công",
-            userUpdate: newUser,
-         });
-      }
-
-      return res.status(403).json({
-         message: "Bạn chỉ được cập nhật thông tin của bạn",
+      res.status(200).json({
+         userUpdate: newUser,
       });
    }),
 
    uploadAvatar: asyncHandler(async (req, res) => {
+      const userId = req.user.userId;
       const file = req.file;
-      const userId = req.params.id;
 
-      const result = await cloudinary.uploader.upload(file.path, {
-         resource_type: "auto",
-         folder: "Travel_Buddy",
-      });
+      if (!file) {
+         throw new BadRequestError(userMessages.avatar.notEmpty);
+      }
 
-      const avatarUrl = result && result.secure_url;
+      const avatarUrl = await uploadImage(file);
 
-      fs.unlinkSync(file.path);
+      const updateUser = await UserModel.findByIdAndUpdate(userId, { avatar: avatarUrl }, { new: true }).select("-password");
+   }),
 
-      const updateUser = await UserModel.findOneAndUpdate(
-         { _id: userId },
-         {
-            avatar: avatarUrl,
-            updateAt: Date.now(),
-         },
-         { new: true }
-      ).select("-password");
+   updatePassword: asyncHandler(async (req, res) => {
+      const userId = req.user.userId;
+      const { password, newPassword } = req.body;
+
+      const user = await UserModel.findById(userId).select("password");
+
+      const isMatchPassword = await bcrypt.compare(password, user.password);
+
+      if (!isMatchPassword) {
+         throw new BadRequestError(400, userMessages.password.passwordErr);
+      }
+
+      const salt = await bcrypt.genSalt(10);
+      const haledPassword = await bcrypt.hash(newPassword, salt);
+
+      await UserModel.findByIdAndUpdate(userId, { password: haledPassword }, { new: true });
 
       res.status(200).json({
-         message: "Cập nhật ảnh đại diện thành công",
-         data: updateUser,
+         message: userMessages.successfully,
       });
    }),
 };

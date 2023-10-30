@@ -1,9 +1,8 @@
-export const errorHandleMiddleware = (err, req, res, next) => {
-   const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
+export const errorHandlerMiddleware = (err, req, res, next) => {
+   const httpStatus = err.statusCode || 500;
+   const message = err.message;
 
-   res.status(statusCode).json({
-      message: err.message,
-      statusCode,
-      stack: err.stack,
+   res.status(httpStatus).json({
+      message: message,
    });
 };
