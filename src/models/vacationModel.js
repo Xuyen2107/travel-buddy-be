@@ -20,6 +20,7 @@ const VacationSchema = new mongoose.Schema(
 
       description: {
          type: String,
+         require: true,
       },
 
       listUser: [
@@ -30,7 +31,7 @@ const VacationSchema = new mongoose.Schema(
       ],
 
       isPublic: {
-         type: Boolean,
+         type: String,
          default: true,
       },
 

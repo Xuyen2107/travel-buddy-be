@@ -1,17 +1,17 @@
 import mongoose from "mongoose";
 
-const PostSchema = new mongoose.Schema({
-   author: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Users",
-   },
+const PostSchema = new mongoose.Schema(
+   {
+      author: {
+         type: mongoose.Schema.Types.ObjectId,
+         ref: "Users",
+      },
 
-   vacation: {
-      type: String,
-   },
+      vacation: {
+         type: String,
+      },
 
-   milestones: [
-      {
+      milestones: {
          time: {
             type: String,
             required: true,
@@ -21,40 +21,32 @@ const PostSchema = new mongoose.Schema({
             required: true,
          },
       },
-   ],
 
-   content: {
-      type: String,
-      required: true,
-   },
-
-   mediaUrls: {
-      type: String,
-   },
-
-   checkIn: {
-      type: String,
-      default: "",
-   },
-
-   likes: [
-      {
-         author: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Users",
-         },
+      content: {
+         type: String,
+         required: true,
       },
-   ],
 
-   createAt: {
-      type: Date,
-      default: new Date(),
+      images: {
+         type: Array,
+      },
+
+      isPublic: {
+         type: String,
+      },
+
+      likes: [
+         {
+            author: {
+               type: mongoose.Schema.Types.ObjectId,
+               ref: "Users",
+            },
+         },
+      ],
    },
 
-   updateAt: {
-      type: Date,
-   },
-});
+   { timestamps: true },
+);
 
 const PostModel = mongoose.model("Posts", PostSchema);
 

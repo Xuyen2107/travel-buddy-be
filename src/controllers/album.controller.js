@@ -3,32 +3,46 @@ import AlbumModel from "../models/albumModel.js";
 import { uploadImage } from "../services/uploadImage.js";
 import BadRequestError from "../errors/BadRequestError.js";
 import { albumMessage } from "../utils/albumMessage.js";
+import { check } from "express-validator";
 
 const AlbumController = {
-   albumValidation: () => {
-      const validateAlbum = [
-         body("nameAlbum").isString().notEmpty().withMessage(albumMessage.nameAlbum.notEmpty),
-         body("vacation").isString().notEmpty().withMessage(albumMessage.vacation.notEmpty),
-         body("isPublic").isString().notEmpty().withMessage(albumMessage.isPublic.notEmpty),
-      ];
+   validateAlbum: [
+      check("avatarAlbum").custom((value, { req }) => {
+         if (!req.files || !req.files.avatarAlbum) {
+            throw new BadRequestError(albumMessage.avatarAlbum.notEmpty);
+         }
 
-      return validateAlbum;
-   },
+         return true;
+      }),
+
+      check("images").custom((value, { req }) => {
+         if (!req.files || !req.files.images) {
+            throw new BadRequestError(albumMessage.images.notEmpty);
+         }
+
+         return true;
+      }),
+
+      check("data").custom((value) => {
+         try {
+            const dataValue = value ? JSON.parse(value) : {};
+
+            if (dataValue && dataValue.nameAlbum && dataValue.vacation && dataValue.isPublic) {
+               return true;
+            }
+
+            throw new BadRequestError(albumMessage.error);
+         } catch (error) {
+            throw new Error(albumMessage.error);
+         }
+      }),
+   ],
 
    createAlbum: asyncHandler(async (req, res) => {
       const userId = req.user.userId;
-      const { nameAlbum, vacation, isPublic } = req.body;
-      const file = req.files;
-      const avatarAlbum = file["avatarAlbum"] === undefined ? null : file["avatarAlbum"][0];
-      const images = file["images"];
-
-      if (!avatarAlbum) {
-         throw new BadRequestError(albumMessage.avatarAlbum.notEmpty);
-      }
-
-      if (!images) {
-         throw new BadRequestError(albumMessage.images.notEmpty);
-      }
+      const data = JSON.parse(req.body.data);
+      const avatarAlbum = req.files.avatarAlbum[0];
+      const images = req.files.images;
 
       const avatarAlbumUrl = await uploadImage(avatarAlbum);
 
@@ -42,8 +56,9 @@ const AlbumController = {
 
       const newAlbum = await AlbumModel.create({
          author: userId,
-         nameAlbum,
-         vacation,
+         nameAlbum: data.nameAlbum,
+         vacation: data.vacation,
+         isPublic: data.isPublic,
          avatarAlbum: avatarAlbumUrl,
          images: albumUrl,
       });
@@ -97,9 +112,8 @@ const AlbumController = {
       const userId = req.user.userId;
       const albumId = req.params.albumId;
       const body = req.body;
-      const file = req.files;
-      const avatarAlbum = file["avatarAlbum"] === undefined ? null : file["avatarAlbum"][0];
-      const images = file["images"];
+      const avatarAlbum = req.files.avatarAlbum;
+      const images = req.files.images;
 
       const existingAlbum = await AlbumModel.findById(albumId);
 
@@ -108,7 +122,7 @@ const AlbumController = {
       }
 
       if (existingAlbum.author !== userId) {
-         throw new BadRequestError(albumMessage.error);
+         throw new BadRequestError(albumMessage.notUpdate);
       }
 
       if (avatarAlbum) {

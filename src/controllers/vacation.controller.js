@@ -1,44 +1,55 @@
 import asyncHandler from "express-async-handler";
-import { body } from "express-validator";
+import { check } from "express-validator";
 import VacationModel from "../models/vacationModel.js";
 import BadRequestError from "../errors/BadRequestError.js";
 import { uploadImage } from "../services/uploadImage.js";
 import vacationMessages from "../utils/vacationMessage.js";
 
 const VacationController = {
-   validateVacation: () => {
-      const validateVacation = [
-         body("title").notEmpty().withMessage(vacationMessages.title.notEmpty),
-         body("description").notEmpty().withMessage(vacationMessages.description.notEmpty),
-         body("listUser").isArray().withMessage(vacationMessages.listUser.isArray),
-         body("startDay").notEmpty().withMessage(vacationMessages.startDay.notEmpty),
-         body("endDay").notEmpty().withMessage(vacationMessages.endDay.notEmpty),
-         body("milestones").isArray().withMessage(vacationMessages.milestones.isArray).notEmpty().withMessage(vacationMessages.milestones.notEmpty),
-      ];
+   validateVacation: [
+      check("avatarVacation").custom((value, { req }) => {
+         if (!req.file) {
+            throw new BadRequestError(vacationMessages.avatarVacation.notEmpty);
+         }
 
-      return validateVacation;
-   },
+         return true;
+      }),
+
+      check("data").custom((value) => {
+         try {
+            const data = value ? JSON.parse(value) : {};
+
+            if (
+               data.title &&
+               data.description &&
+               data.isPublic &&
+               data.startDay &&
+               data.endDay &&
+               data.milestones &&
+               Array.isArray(data.milestones) &&
+               data.milestones.every((milestone) => milestone.time && milestone.description)
+            ) {
+               return true;
+            }
+
+            throw new BadRequestError(vacationMessages.error);
+         } catch (error) {
+            throw new Error(vacationMessages.error);
+         }
+      }),
+   ],
 
    createVacation: asyncHandler(async (req, res) => {
-      const userId = req.user.userId;
+      const { userId } = req.user;
       const file = req.file;
-      const { title, description, listUser, startDay, endDay, milestones } = req.body;
+      const data = req.body.data ? JSON.parse(req.body.data) : {};
 
-      if (!file) {
-         throw new BadRequestError(vacationMessages.avatarVacation.notEmpty);
-      }
       const vacationUrl = await uploadImage(file);
 
       const newVacation = await VacationModel.create({
          author: userId,
-         title,
          avatarVacation: vacationUrl,
-         description,
-         listUser,
-         isPublic,
-         startDay,
-         endDay,
-         milestones,
+         ...data,
       });
 
       res.status(200).json({

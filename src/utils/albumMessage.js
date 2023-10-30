@@ -20,7 +20,7 @@ export const albumMessage = {
    },
 
    images: {
-      notEmpty: "Vui lòng chọn ảnh của bạn",
+      notEmpty: "Vui lòng chọn ảnh cho album của bạn",
       isArray: "Ảnh album là 1 mảng",
    },
 
@@ -28,5 +28,7 @@ export const albumMessage = {
 
    notFound: "Không tìm thấy",
 
-   error: "Bạn chỉ được cập nhật album của mình ",
+   notUpdate: "Bạn chỉ được cập nhật album của mình",
+
+   error: "Dữ liệu không hợp lệ",
 };

@@ -20,7 +20,6 @@ const AlbumSchema = new mongoose.Schema(
 
       avatarAlbum: {
          type: String,
-         required: true,
       },
 
       isPublic: {

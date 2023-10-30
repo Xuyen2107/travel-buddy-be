@@ -40,6 +40,8 @@ const vacationMessages = {
    successfully: "Thành công",
 
    notFound: "Không tìm thấy",
+
+   error: "Dữ liệu không hợp lệ",
 };
 
 export default vacationMessages;

@@ -1,17 +1,39 @@
+import { check } from "express-validator";
 import asyncHandler from "express-async-handler";
 import PostModel from "../models/postModel.js";
 import { uploadImage } from "../services/uploadImage.js";
 import BadRequestError from "../errors/BadRequestError.js";
+import { postMessage } from "../utils/postMessage.js";
 
 const PostController = {
+   validatePost: [
+      check("images").custom((value, { req }) => {
+         if (!req.files) {
+            throw new BadRequestError(postMessage.images.notEmpty);
+         }
+
+         return true;
+      }),
+
+      check("data").custom((value) => {
+         try {
+            const data = value ? JSON.parse(value) : {};
+
+            if (data && data.vacation && data.milestones && data.milestones.time && data.milestones.description && data.content && data.isPublic) {
+               return true;
+            }
+
+            throw new BadRequestError(postMessage.error);
+         } catch (error) {
+            throw new Error(postMessage.error);
+         }
+      }),
+   ],
+
    createPost: asyncHandler(async (req, res) => {
-      const { vacation, milestones, content, checkIn } = req.body;
+      const data = req.body.data ? JSON.parse(req.body.data) : {};
       const files = req.files;
       const userId = req.user.id;
-
-      if (!files) {
-         throw new BadRequestError(404, "Bạn chưa chọn ảnh=");
-      }
 
       const uploadPromises = files.map(async (item) => {
          const image = await uploadImage(item);
@@ -21,33 +43,29 @@ const PostController = {
 
       const imageUrl = await Promise.all(uploadPromises);
 
-      const newPost = new PostModel({
+      const newPost = await PostModel.create({
          author: userId,
-         vacation,
-         milestones,
-         content,
-         mediaUrls: imageUrl,
-         checkIn,
+         vacation: data.vacation,
+         milestones: data.milestones,
+         content: data.content,
+         images: imageUrl,
       });
-
-      await newPost.save();
 
       res.status(200).json({
          data: newPost,
       });
    }),
 
-   //[Get] /post/:id   //get a post
    getPost: asyncHandler(async (req, res) => {
       const postId = req.params.id;
 
       const post = await PostModel.findById(postId).populate({
          path: "author",
-         select: "fullName userName avatar",
+         select: "fullName avatar",
       });
 
       if (!post) {
-         throw new BadRequestError(404, "Không tìm thấy bài viết");
+         throw new BadRequestError(postMessage.notFound);
       }
 
       res.status(200).json({
@@ -55,27 +73,25 @@ const PostController = {
       });
    }),
 
-   //[Get] /post/all   // get all new feed
    getAllPosts: asyncHandler(async (req, res) => {
       const posts = await PostModel.find();
 
       if (!posts) {
-         throw new BadRequestError(404, "Chưa có bài viết nào trong hệ thống");
+         throw new BadRequestError(postMessage.notFound);
       }
 
-      res.status(200).json({ data: posts });
+      res.status(200).json({
+         data: posts,
+      });
    }),
 
-   //[Get] /post/owners/:id
-   //Get all post owners
-
    getAllPostsByUser: asyncHandler(async (req, res) => {
-      const userId = req.user.id;
+      const { userId } = req.user;
 
       const posts = await PostModel.find({ author: userId });
 
       if (!posts) {
-         throw new BadRequestError(404, "Không tìm thấy bất kỳ bài viết nào của user");
+         throw new BadRequestError(postMessage.notFound);
       }
 
       res.status(201).json({
@@ -83,14 +99,11 @@ const PostController = {
       });
    }),
 
-   //[Put] /post/:id
-   //Update a post
-
    updatePost: asyncHandler(async (req, res) => {
-      const postId = req.params.id;
+      const postId = req.params.postId;
       const body = req.body;
       const files = req.files;
-      const userId = req.user.id;
+      const { userId } = req.user;
 
       if (files) {
          const uploadPromises = files.map(async (item) => {
@@ -101,10 +114,8 @@ const PostController = {
 
          const imageUrl = Promise.all(uploadPromises);
 
-         body.mediaUrls.push(...imageUrl);
+         body.images.push(...imageUrl);
       }
-
-      body.updateAt = new Date();
 
       const updatePost = await PostModel.findByIdAndUpdate(
          postId,
@@ -114,39 +125,29 @@ const PostController = {
          { new: true },
       );
 
-      if (!updatePost) {
-         throw new BadRequestError(404, "Bài post không tồn tại");
-      }
-
       res.status(200).json({
          data: updatePost,
       });
    }),
 
-   //[Delete] /post/:id  //delete a post
    removePost: asyncHandler(async (req, res) => {
-      const postId = req.params.id;
+      const postId = req.params.postId;
 
       const deletePost = await PostModel.findByIdAndDelete(postId);
 
-      if (!deletePost) {
-         throw new BadRequestError(404, "bài Post không tồn tại");
-      }
-
       res.status(200).json({
-         message: "Bài post đã được xóa thành công",
+         message: postMessage.successfully,
       });
    }),
 
-   //[Post] /post/:id/like // Like a post
    likePost: asyncHandler(async (req, res) => {
-      const postId = req.params.id;
-      const userId = req.user.id;
+      const postId = req.params.postId;
+      const { userId } = req.user;
 
       const post = await PostModel.findByIdAndUpdate(postId);
 
       if (!post) {
-         throw new BadRequestError(404, "Bài post không tồn tại");
+         throw new BadRequestError(postMessage.notFound);
       }
 
       const likedIndex = post.likes.findIndex((like) => like.author.toString() === userId.toString());
