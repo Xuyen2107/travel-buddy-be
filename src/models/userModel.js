@@ -1,61 +1,73 @@
 import mongoose from "mongoose";
-import { formatDate } from "../utils/formatDate.js";
+import bcrypt from "bcrypt";
 
-const UserSchema = new mongoose.Schema({
-   fullName: {
-      type: String,
-      require: true,
-   },
+const UserSchema = new mongoose.Schema(
+   {
+      fullName: {
+         type: String,
+         require: true,
+      },
 
-   userName: {
-      type: String,
-      require: true,
-      unique: true,
-   },
+      userName: {
+         type: String,
+         require: true,
+         unique: true,
+      },
 
-   email: {
-      type: String,
-      require: true,
-      unique: true,
-   },
+      email: {
+         type: String,
+         require: true,
+         unique: true,
+      },
 
-   phoneNumber: {
-      type: String,
-      unique: true,
-   },
+      phoneNumber: {
+         type: String,
+         require: true,
+         unique: true,
+      },
 
-   password: {
-      type: String,
-      require: true,
-   },
+      password: {
+         type: String,
+         require: true,
+      },
 
-   avatar: {
-      type: String,
-   },
+      avatar: {
+         type: String,
+      },
 
-   age: {
-      type: Number,
-   },
+      age: {
+         type: Number,
+      },
 
-   dateOfBirth: {
-      type: String,
-   },
+      dateOfBirth: {
+         type: String,
+      },
 
-   sex: {
-      type: String,
-   },
+      gender: {
+         type: String,
+      },
 
-   describe: {
-      type: String,
+      describe: {
+         type: String,
+      },
    },
+   
+   { timestamps: true },
+);
 
-   createAt: {
-      type: String,
-   },
+UserSchema.pre("save", async function (next) {
+   if (!this.isModified("password")) {
+      return next();
+   }
 
-   updateAt: {
-      type: String,
-   },
+   try {
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(this.password, salt);
+      this.password = hashedPassword;
+      next();
+   } catch (error) {
+      return next(error);
+   }
 });
 
 const UserModel = mongoose.model("Users", UserSchema);

@@ -1,4 +1,4 @@
-import { formatDate } from "../utils/formatDate";
+import { formatDate } from "../utils/formatDate.js";
 
 export const logAPI = (req, res, next) => {
    const currentDate = formatDate(new Date());
