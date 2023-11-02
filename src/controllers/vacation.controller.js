@@ -17,7 +17,7 @@ const VacationController = {
 
       check("data").custom((value) => {
          try {
-            const data = value ? JSON.parse(value) : {};
+            const data = value ? JSON.parse(value) : null;
 
             if (
                data.title &&
@@ -42,7 +42,7 @@ const VacationController = {
    createVacation: asyncHandler(async (req, res) => {
       const { userId } = req.user;
       const file = req.file;
-      const data = req.body.data ? JSON.parse(req.body.data) : {};
+      const data = jSON.parse(req.body.data);
 
       const vacationUrl = await uploadImage(file);
 
@@ -88,19 +88,19 @@ const VacationController = {
    updateVacation: asyncHandler(async (req, res) => {
       const vacationId = req.params.vacationId;
       const file = req.file;
-      const body = req.body;
+      const data = req.body.data;
 
       if (file) {
          const vacationUrl = await uploadImage(file);
 
-         body.avatarVacation = vacationUrl;
+         data.avatarVacation = vacationUrl;
       }
 
       // Cập nhật thông tin kỳ nghỉ trong cơ sở dữ liệu
       const updatedVacation = await VacationModel.findByIdAndUpdate(
          vacationId,
          {
-            $set: body,
+            $set: data,
          },
          { new: true }, // Trả về bản ghi sau khi đã cập nhật
       );

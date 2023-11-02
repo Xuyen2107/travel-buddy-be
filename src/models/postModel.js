@@ -5,10 +5,12 @@ const PostSchema = new mongoose.Schema(
       author: {
          type: mongoose.Schema.Types.ObjectId,
          ref: "Users",
+         required: true,
       },
 
       vacation: {
          type: String,
+         required: true,
       },
 
       milestones: {
@@ -33,6 +35,7 @@ const PostSchema = new mongoose.Schema(
 
       isPublic: {
          type: String,
+         required: true,
       },
 
       likes: [
