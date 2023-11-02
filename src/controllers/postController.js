@@ -31,9 +31,9 @@ const PostController = {
    ],
 
    createPost: asyncHandler(async (req, res) => {
-      const data = req.body.data ? JSON.parse(req.body.data) : {};
+      const data = JSON.parse(req.body.data);
       const files = req.files;
-      const userId = req.user.id;
+      const { userId } = req.user;
 
       const uploadPromises = files.map(async (item) => {
          const image = await uploadImage(item);
@@ -44,10 +44,8 @@ const PostController = {
       const imageUrl = await Promise.all(uploadPromises);
 
       const newPost = await PostModel.create({
+         ...data,
          author: userId,
-         vacation: data.vacation,
-         milestones: data.milestones,
-         content: data.content,
          images: imageUrl,
       });
 
@@ -57,7 +55,7 @@ const PostController = {
    }),
 
    getPost: asyncHandler(async (req, res) => {
-      const postId = req.params.id;
+      const postId = req.params.postId;
 
       const post = await PostModel.findById(postId).populate({
          path: "author",
@@ -101,7 +99,7 @@ const PostController = {
 
    updatePost: asyncHandler(async (req, res) => {
       const postId = req.params.postId;
-      const body = req.body;
+      const data = req.body.data;
       const files = req.files;
       const { userId } = req.user;
 
@@ -114,13 +112,13 @@ const PostController = {
 
          const imageUrl = Promise.all(uploadPromises);
 
-         body.images.push(...imageUrl);
+         data.images.push(...imageUrl);
       }
 
       const updatePost = await PostModel.findByIdAndUpdate(
          postId,
          {
-            $set: body,
+            $set: data,
          },
          { new: true },
       );
