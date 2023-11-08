@@ -3,6 +3,7 @@ import asyncHandler from "express-async-handler";
 import { uploadImage } from "../services/uploadImage.js";
 import BadRequestError from "../errors/BadRequestError.js";
 import { userMessages } from "../utils/userMessage.js";
+import UserModel from "../models/userModel.js";
 
 const UserController = {
    getUser: asyncHandler(async (req, res) => {

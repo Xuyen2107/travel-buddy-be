@@ -2,15 +2,14 @@ import asyncHandler from "express-async-handler";
 import AlbumModel from "../models/albumModel.js";
 import { uploadImage } from "../services/uploadImage.js";
 import BadRequestError from "../errors/BadRequestError.js";
-import { albumMessage } from "../utils/albumMessage.js";
+import { ALBUM_MESSAGE } from "../utils/albumMessage.js";
 import { check } from "express-validator";
-import { log } from "console";
 
 const AlbumController = {
    validateAlbum: [
       check("avatarAlbum").custom((value, { req }) => {
          if (!req.files || !req.files.avatarAlbum) {
-            throw new BadRequestError(albumMessage.avatarAlbum.notEmpty);
+            throw new BadRequestError(ALBUM_MESSAGE.avatarAlbum.notEmpty);
          }
 
          return true;
@@ -18,7 +17,7 @@ const AlbumController = {
 
       check("images").custom((value, { req }) => {
          if (!req.files || !req.files.images) {
-            throw new BadRequestError(albumMessage.images.notEmpty);
+            throw new BadRequestError(ALBUM_MESSAGE.images.notEmpty);
          }
 
          return true;
@@ -32,9 +31,9 @@ const AlbumController = {
                return true;
             }
 
-            throw new BadRequestError(albumMessage.error);
+            throw new BadRequestError(ALBUM_MESSAGE.error);
          } catch (error) {
-            throw new Error(albumMessage.error);
+            throw new Error(ALBUM_MESSAGE.error);
          }
       }),
    ],
@@ -42,8 +41,9 @@ const AlbumController = {
    createAlbum: asyncHandler(async (req, res) => {
       const { userId } = req.user;
       const data = JSON.parse(req.body.data);
-      const avatarAlbum = req.files.avatarAlbum[0];
+      const [avatarAlbum] = req.files.avatarAlbum;
       const images = req.files.images;
+      req.file;
 
       const avatarAlbumUrl = await uploadImage(avatarAlbum);
 
@@ -73,7 +73,7 @@ const AlbumController = {
       const album = await AlbumModel.findById(albumId);
 
       if (!album) {
-         throw new BadRequestError(albumMessage.notFound);
+         throw new BadRequestError(ALBUM_MESSAGE.notFound);
       }
 
       res.status(200).json({
@@ -85,7 +85,7 @@ const AlbumController = {
       const allAlbum = await AlbumModel.find();
 
       if (!allAlbum) {
-         throw new BadRequestError(albumMessage.notFound);
+         throw new BadRequestError(ALBUM_MESSAGE.notFound);
       }
 
       res.status(200).json({
@@ -98,8 +98,8 @@ const AlbumController = {
 
       const album = await AlbumModel.find({ author: userId });
 
-      if (!album) {
-         throw new BadRequestError(albumMessage.notFound);
+      if (album.length === 0) {
+         throw new BadRequestError(ALBUM_MESSAGE.notFound);
       }
 
       res.status(201).json({
@@ -117,11 +117,11 @@ const AlbumController = {
       const existingAlbum = await AlbumModel.findById(albumId);
 
       if (!existingAlbum) {
-         throw new BadRequestError(albumMessage.notFound);
+         throw new BadRequestError(ALBUM_MESSAGE.notFound);
       }
 
       if (existingAlbum.author.toString() !== userId) {
-         throw new BadRequestError(albumMessage.notUpdate);
+         throw new BadRequestError(ALBUM_MESSAGE.notUpdate);
       }
 
       if (avatarAlbum) {
@@ -159,11 +159,11 @@ const AlbumController = {
       const deleteAlbum = await AlbumModel.findByIdAndDelete(albumId);
 
       if (!deleteAlbum) {
-         throw new BadRequestError(albumMessage.notFound);
+         throw new BadRequestError(ALBUM_MESSAGE.notFound);
       }
 
       res.status(200).json({
-         message: albumMessage.successfully,
+         message: ALBUM_MESSAGE.successfully,
       });
    }),
 };
