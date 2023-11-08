@@ -36,6 +36,8 @@ const AlbumSchema = new mongoose.Schema(
    { timestamps: true },
 );
 
+
+
 const AlbumModel = mongoose.model("Albums", AlbumSchema);
 
 export default AlbumModel;

@@ -12,8 +12,8 @@ vacationRouter.post(
    validationMiddleware,
    VacationController.createVacation,
 );
-vacationRouter.get("/:vacationId", VacationController.getVacation);
 vacationRouter.get("/all", VacationController.getAllVacations);
+vacationRouter.get("/:vacationId", VacationController.getVacation);
 vacationRouter.put("/:vacationId/update", uploadFile.single("avatarVacation"), validationMiddleware, VacationController.updateVacation);
 vacationRouter.delete("/:vacationId/remove", VacationController.removeVacation);
 
