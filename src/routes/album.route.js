@@ -12,9 +12,9 @@ albumRouter.post(
    validationMiddleware,
    AlbumController.createAlbum,
 );
-albumRouter.get("/:albumId", AlbumController.getAlbum);
 albumRouter.get("/all", AlbumController.getAllAlbums);
 albumRouter.get("/all-by-user", AlbumController.getAllAlbumsByUser);
+albumRouter.get("/:albumId", AlbumController.getAlbum);
 albumRouter.put(
    "/:albumId/update",
    uploadFile.fields([{ name: "avatarAlbum", maxCount: 1 }, { name: "images" }]),
