@@ -44,6 +44,9 @@ const UserController = {
       const avatarUrl = await uploadImage(file);
 
       const updateUser = await UserModel.findByIdAndUpdate(userId, { avatar: avatarUrl }, { new: true }).select("-password");
+      res.status(200).json({
+         data: updateUser,
+      });
    }),
 
    updatePassword: asyncHandler(async (req, res) => {
