@@ -1,4 +1,4 @@
-export const albumMessage = {
+export const ALBUM_MESSAGE = {
    author: {
       notEmpty: "Tên tác giả không được để trống",
    },

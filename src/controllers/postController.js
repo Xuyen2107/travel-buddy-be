@@ -72,14 +72,19 @@ const PostController = {
    }),
 
    getAllPosts: asyncHandler(async (req, res) => {
-      const posts = await PostModel.find();
+      const page = req.query.page;
 
-      if (!posts) {
-         throw new BadRequestError(postMessage.notFound);
-      }
+      const options = {
+         page,
+         limit: 5,
+         sort: { createAt: -1 },
+      };
+
+      const result = await PostModel.paginate({}, options);
+      console.log(result);
 
       res.status(200).json({
-         data: posts,
+         data: result.docs,
       });
    }),
 
