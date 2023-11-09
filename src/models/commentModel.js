@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { formatDate } from "../utils/formatDate.js";
+import mongoosePaginate from "mongoose-paginate-v2";
 
 const CommentSchema = new mongoose.Schema(
    {
@@ -23,6 +23,10 @@ const CommentSchema = new mongoose.Schema(
    { timestamps: true },
 );
 
+CommentSchema.plugin(mongoosePaginate);
+
 const CommentModel = mongoose.model("Comments", CommentSchema);
+
+CommentModel.paginate().then({});
 
 export default CommentModel;

@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import mongoosePaginate from "mongoose-paginate-v2";
 
 const VacationSchema = new mongoose.Schema(
    {
@@ -64,7 +65,13 @@ const VacationSchema = new mongoose.Schema(
       },
 
       likes: {
-         type: Array,
+         type: [
+            {
+               type: mongoose.Schema.Types.ObjectId,
+               ref: "Users",
+            },
+         ],
+
          default: [],
       },
    },
@@ -72,6 +79,10 @@ const VacationSchema = new mongoose.Schema(
    { timestamps: true },
 );
 
+VacationSchema.plugin(mongoosePaginate);
+
 const VacationModel = mongoose.model("Vacations", VacationSchema);
+
+VacationModel.paginate().then({});
 
 export default VacationModel;

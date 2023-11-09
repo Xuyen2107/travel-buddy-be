@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import mongoosePaginate from "mongoose-paginate-v2";
 
 const AlbumSchema = new mongoose.Schema(
    {
@@ -31,13 +32,26 @@ const AlbumSchema = new mongoose.Schema(
          type: Array,
          required: true,
       },
+
+      likes: {
+         type: [
+            {
+               type: mongoose.Schema.Types.ObjectId,
+               ref: "Users",
+            },
+         ],
+
+         default: [],
+      },
    },
 
    { timestamps: true },
 );
 
-
+AlbumSchema.plugin(mongoosePaginate);
 
 const AlbumModel = mongoose.model("Albums", AlbumSchema);
+
+AlbumModel.paginate().then({});
 
 export default AlbumModel;
