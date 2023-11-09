@@ -9,7 +9,10 @@ const UserController = {
    getUser: asyncHandler(async (req, res) => {
       const userId = req.params.userId;
 
-      const user = await UserModel.findById(userId).select("-password");
+      const user = await UserModel.findById(userId).select("-password").populate({
+         path: "friends",
+         select: "-password",
+      });
 
       if (!user) {
          throw new BadRequestError(userMessages.notEmpty);
@@ -65,6 +68,29 @@ const UserController = {
       const haledPassword = await bcrypt.hash(newPassword, salt);
 
       await UserModel.findByIdAndUpdate(userId, { password: haledPassword }, { new: true });
+
+      res.status(200).json({
+         message: userMessages.successfully,
+      });
+   }),
+
+   addRemoveFriend: asyncHandler(async (req, res) => {
+      const { userId } = req.user;
+      const friendId = req.params.userId;
+
+      const user = await UserModel.findById(userId).select("friends");
+      const friend = await UserModel.findById(friendId).select("friends");
+
+      if (user.friends.includes(friendId)) {
+         user.friends.pull(friendId);
+         friend.friends.pull(userId);
+      } else {
+         user.friends.push(friendId);
+         friend.friends.push(userId);
+      }
+
+      await user.save();
+      await friend.save();
 
       res.status(200).json({
          message: userMessages.successfully,

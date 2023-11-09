@@ -39,14 +39,16 @@ const PostSchema = new mongoose.Schema(
          required: true,
       },
 
-      likes: [
-         {
-            author: {
+      likes: {
+         type: [
+            {
                type: mongoose.Schema.Types.ObjectId,
                ref: "Users",
             },
-         },
-      ],
+         ],
+
+         default: [],
+      },
    },
 
    { timestamps: true },
