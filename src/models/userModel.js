@@ -35,6 +35,16 @@ const UserSchema = new mongoose.Schema(
          type: String,
       },
 
+      friends: {
+         type: [
+            {
+               type: mongoose.Schema.Types.ObjectId,
+               ref: "Users",
+            },
+         ],
+         default: [],
+      },
+
       age: {
          type: Number,
       },
@@ -51,7 +61,7 @@ const UserSchema = new mongoose.Schema(
          type: String,
       },
    },
-   
+
    { timestamps: true },
 );
 
