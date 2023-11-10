@@ -49,9 +49,7 @@ const PostController = {
          images: imageUrl,
       });
 
-      res.status(200).json({
-         data: newPost,
-      });
+      res.status(200).json(newPost);
    }),
 
    getPost: asyncHandler(async (req, res) => {
@@ -66,9 +64,7 @@ const PostController = {
          throw new BadRequestError(postMessage.notFound);
       }
 
-      res.status(200).json({
-         data: post,
-      });
+      res.status(200).json(post);
    }),
 
    getAllPosts: asyncHandler(async (req, res) => {
@@ -81,11 +77,8 @@ const PostController = {
       };
 
       const result = await PostModel.paginate({}, options);
-      console.log(result);
 
-      res.status(200).json({
-         data: result.docs,
-      });
+      res.status(200).json(result);
    }),
 
    getAllPostsByUser: asyncHandler(async (req, res) => {
@@ -97,9 +90,7 @@ const PostController = {
          throw new BadRequestError(postMessage.notFound);
       }
 
-      res.status(201).json({
-         data: posts,
-      });
+      res.status(201).json(posts);
    }),
 
    updatePost: asyncHandler(async (req, res) => {
@@ -128,9 +119,7 @@ const PostController = {
          { new: true },
       );
 
-      res.status(200).json({
-         data: updatePost,
-      });
+      res.status(200).json(updatePost);
    }),
 
    removePost: asyncHandler(async (req, res) => {
@@ -161,9 +150,7 @@ const PostController = {
 
       await post.save();
 
-      res.status(200).json({
-         message: postMessage.successfully,
-      });
+      res.status(200).json(post);
    }),
 };
 

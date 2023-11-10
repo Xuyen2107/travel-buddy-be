@@ -18,26 +18,20 @@ const UserController = {
          throw new BadRequestError(userMessages.notEmpty);
       }
 
-      return res.status(200).json({
-         data: user,
-      });
+      return res.status(200).json(user);
    }),
 
    updateUser: asyncHandler(async (req, res) => {
-      const userId = req.user.userId;
+      const { userId } = req.user.userId;
       const body = req.body;
-
-      body.updateAt = new Date();
 
       const newUser = await UserModel.findByIdAndUpdate(userId, { $set: body }, { new: true }).select("-password");
 
-      res.status(200).json({
-         userUpdate: newUser,
-      });
+      res.status(200).json(newUser);
    }),
 
    uploadAvatar: asyncHandler(async (req, res) => {
-      const userId = req.user.userId;
+      const { userId } = req.user;
       const file = req.file;
 
       if (!file) {
@@ -46,14 +40,13 @@ const UserController = {
 
       const avatarUrl = await uploadImage(file);
 
-      const updateUser = await UserModel.findByIdAndUpdate(userId, { avatar: avatarUrl }, { new: true }).select("-password");
-      res.status(200).json({
-         data: updateUser,
-      });
+      const updateUser = await UserModel.findByIdAndUpdate(userId, { avatar: avatarUrl }, { new: true }).select("avatar");
+      
+      res.status(200).json(updateUser);
    }),
 
    updatePassword: asyncHandler(async (req, res) => {
-      const userId = req.user.userId;
+      const { userId } = req.user;
       const { password, newPassword } = req.body;
 
       const user = await UserModel.findById(userId).select("password");
@@ -78,6 +71,10 @@ const UserController = {
       const { userId } = req.user;
       const friendId = req.params.userId;
 
+      if (userId === friendId) {
+         throw new BadRequestError("Bạn không thể thêm chính mình");
+      }
+
       const user = await UserModel.findById(userId).select("friends");
       const friend = await UserModel.findById(friendId).select("friends");
 
@@ -92,9 +89,7 @@ const UserController = {
       await user.save();
       await friend.save();
 
-      res.status(200).json({
-         message: userMessages.successfully,
-      });
+      res.status(200).json(user);
    }),
 };
 

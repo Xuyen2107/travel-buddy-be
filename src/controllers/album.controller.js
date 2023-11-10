@@ -41,9 +41,8 @@ const AlbumController = {
    createAlbum: asyncHandler(async (req, res) => {
       const { userId } = req.user;
       const data = JSON.parse(req.body.data);
-      const [avatarAlbum] = req.files.avatarAlbum;
+      const avatarAlbum = req.files.avatarAlbum[0];
       const images = req.files.images;
-      req.file;
 
       const avatarAlbumUrl = await uploadImage(avatarAlbum);
 
@@ -62,9 +61,7 @@ const AlbumController = {
          ...data,
       });
 
-      res.status(200).json({
-         data: newAlbum,
-      });
+      res.status(200).json(newAlbum);
    }),
 
    getAlbum: asyncHandler(async (req, res) => {
@@ -76,9 +73,7 @@ const AlbumController = {
          throw new BadRequestError(ALBUM_MESSAGE.notFound);
       }
 
-      res.status(200).json({
-         data: album,
-      });
+      res.status(200).json(album);
    }),
 
    getAllAlbums: asyncHandler(async (req, res) => {
@@ -88,9 +83,7 @@ const AlbumController = {
          throw new BadRequestError(ALBUM_MESSAGE.notFound);
       }
 
-      res.status(200).json({
-         data: allAlbum,
-      });
+      res.status(200).json(allAlbum);
    }),
 
    getAllAlbumsByUser: asyncHandler(async (req, res) => {
@@ -102,9 +95,7 @@ const AlbumController = {
          throw new BadRequestError(ALBUM_MESSAGE.notFound);
       }
 
-      res.status(201).json({
-         data: album,
-      });
+      res.status(201).json(album);
    }),
 
    updateAlbum: asyncHandler(async (req, res) => {
@@ -148,9 +139,7 @@ const AlbumController = {
          { new: true },
       );
 
-      res.status(200).json({
-         data: updateAlbum,
-      });
+      res.status(200).json(updateAlbum);
    }),
 
    removeAlbum: asyncHandler(async (req, res) => {
