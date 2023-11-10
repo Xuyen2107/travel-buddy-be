@@ -7,9 +7,9 @@ import userValidation from "../validations/user.validation.js";
 
 const userRoute = express.Router();
 
+userRoute.put("/upload-avatar", uploadFile.single("avatar"), UserController.uploadAvatar);
 userRoute.get("/:userId", paramValidation("userId"), validationMiddleware, UserController.getUser);
 userRoute.put("/:userId/update", paramValidation("userId"), userValidation("updateUser"), validationMiddleware, UserController.updateUser);
-userRoute.put("/:userId/upload-avatar", paramValidation("userId"), validationMiddleware, uploadFile.single("avatar"), UserController.uploadAvatar);
 userRoute.put(
    "/:userId/update-password",
    paramValidation("userId"),
