@@ -36,7 +36,6 @@ const PasswordController = {
 
       res.status(200).json({
          message: userMessages.successfully,
-         data: existingUser,
       });
    }),
 

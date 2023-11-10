@@ -53,13 +53,11 @@ const AuthController = {
    }),
 
    profile: asyncHandler(async (req, res) => {
-      const userId = req.user.userId;
+      const { userId } = req.user;
 
       const currentUser = await UserModel.findById(userId).select("-password");
 
-      res.status(200).json({
-         userInfo: currentUser,
-      });
+      res.status(200).json(currentUser);
    }),
 };
 
