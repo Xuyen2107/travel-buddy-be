@@ -40,6 +40,7 @@ const AlbumController = {
 
    createAlbum: asyncHandler(async (req, res) => {
       const { userId } = req.user;
+
       const data = JSON.parse(req.body.data);
       const avatarAlbum = req.files.avatarAlbum[0];
       const images = req.files.images;
@@ -67,7 +68,10 @@ const AlbumController = {
    getAlbum: asyncHandler(async (req, res) => {
       const { albumId } = req.params;
 
-      const album = await AlbumModel.findById(albumId);
+      const album = await AlbumModel.findById(albumId).populate({
+         path: "author",
+         select: "fullName avatar",
+      });
 
       if (!album) {
          throw new BadRequestError(ALBUM_MESSAGE.notFound);
@@ -85,7 +89,7 @@ const AlbumController = {
          sort: { createAt: -1 },
       };
 
-      const result = await AlbumModel.paginate({}, options);
+      const result = await AlbumModel.paginate({}, options)
 
       res.status(200).json(result);
    }),
