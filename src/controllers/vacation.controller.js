@@ -46,19 +46,17 @@ const VacationController = {
 
       const vacationUrl = await uploadImage(file);
 
-      const newVacation = await VacationModel.create({
+      const vacation = await VacationModel.create({
          author: userId,
          avatarVacation: vacationUrl,
          ...data,
       });
 
-      res.status(200).json({
-         data: newVacation,
-      });
+      res.status(200).json(vacation);
    }),
 
    getVacation: asyncHandler(async (req, res) => {
-      const vacationId = req.params.vacationId;
+      const { vacationId } = req.params;
 
       const vacation = await VacationModel.findById(vacationId);
 
@@ -66,29 +64,30 @@ const VacationController = {
          throw new BadRequestError(vacationMessages.notFound);
       }
 
-      res.status(200).json({
-         data: vacation,
-      });
+      res.status(200).json(vacation);
    }),
 
    getAllVacations: asyncHandler(async (req, res) => {
-      // Lấy danh sách tất cả các kỳ nghỉ từ cơ sở dữ liệu
       const allVacations = await VacationModel.find();
 
       if (!allVacations) {
          throw new BadRequestError(vacationMessages.notFound);
       }
 
-      // Trả về danh sách kỳ nghỉ dưới dạng JSON
-      res.status(200).json({
-         data: allVacations,
-      });
+      res.status(200).json(allVacations);
    }),
 
    updateVacation: asyncHandler(async (req, res) => {
-      const vacationId = req.params.vacationId;
+      const { userId } = req.user;
+      const { vacationId } = req.params;
       const file = req.file;
-      const data = req.body.data;
+      const data = JSON.parse(req.body.data);
+
+      const vacation = await VacationModel.findById(vacationId);
+
+      if (vacation.author._id !== userId) {
+         throw new BadRequestError(vacationMessages.notAccept);
+      }
 
       if (file) {
          const vacationUrl = await uploadImage(file);
@@ -96,25 +95,22 @@ const VacationController = {
          data.avatarVacation = vacationUrl;
       }
 
-      // Cập nhật thông tin kỳ nghỉ trong cơ sở dữ liệu
-      const updatedVacation = await VacationModel.findByIdAndUpdate(
-         vacationId,
-         {
-            $set: data,
-         },
-         { new: true }, // Trả về bản ghi sau khi đã cập nhật
-      );
+      const updatedVacation = await VacationModel.findByIdAndUpdate(vacationId, { $set: data }, { new: true });
 
-      res.status(200).json({
-         data: updatedVacation,
-      });
+      res.status(200).json(updatedVacation);
    }),
 
    removeVacation: asyncHandler(async (req, res) => {
-      const vacationId = req.params.vacationId;
+      const { userId } = req.user;
+      const { vacationId } = req.params;
 
-      // Xóa kỳ nghỉ từ cơ sở dữ liệu
-      await VacationModel.findByIdAndDelete(vacationId);
+      const vacation = await VacationModel.findById(vacationId);
+
+      if (vacation.author._id !== userId) {
+         throw new BadRequestError(vacationMessages.notAccept);
+      }
+
+      await VacationModel.deleteOne(vacation);
 
       res.status(200).json({
          message: vacationMessages.successfully,
