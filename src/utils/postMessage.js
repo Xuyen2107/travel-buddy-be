@@ -31,7 +31,6 @@ export const postMessage = {
    notUpdate: "Bạn chỉ được cập nhật bài viết của mình",
 
    error: "Dữ liệu không hợp lệ",
+
+   notAccept: "Bạn chỉ được thao tác trên bài viết của mình",
 };
-
-
-

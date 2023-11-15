@@ -25,7 +25,7 @@ const AlbumController = {
 
       check("data").custom((value) => {
          try {
-            const data = value ? JSON.parse(value) : null;
+            const data = value ? JSON.parse(value) : {};
 
             if (data && data.nameAlbum && data.vacation && data.isPublic) {
                return true;
@@ -65,7 +65,7 @@ const AlbumController = {
    }),
 
    getAlbum: asyncHandler(async (req, res) => {
-      const albumId = req.params.albumId;
+      const { albumId } = req.params;
 
       const album = await AlbumModel.findById(albumId);
 
@@ -77,25 +77,32 @@ const AlbumController = {
    }),
 
    getAllAlbums: asyncHandler(async (req, res) => {
-      const allAlbum = await AlbumModel.find();
+      const page = req.query.page;
 
-      if (!allAlbum) {
-         throw new BadRequestError(ALBUM_MESSAGE.notFound);
-      }
+      const options = {
+         page,
+         limit: 10,
+         sort: { createAt: -1 },
+      };
 
-      res.status(200).json(allAlbum);
+      const result = await AlbumModel.paginate({}, options);
+
+      res.status(200).json(result);
    }),
 
    getAllAlbumsByUser: asyncHandler(async (req, res) => {
       const { userId } = req.user;
+      const page = req.query.page;
 
-      const album = await AlbumModel.find({ author: userId });
+      const options = {
+         page,
+         limit: 10,
+         sort: { createAt: -1 },
+      };
 
-      if (album.length === 0) {
-         throw new BadRequestError(ALBUM_MESSAGE.notFound);
-      }
+      const result = await AlbumModel.paginate({ author: userId }, options);
 
-      res.status(201).json(album);
+      res.status(201).json(result);
    }),
 
    updateAlbum: asyncHandler(async (req, res) => {
@@ -112,7 +119,7 @@ const AlbumController = {
       }
 
       if (existingAlbum.author.toString() !== userId) {
-         throw new BadRequestError(ALBUM_MESSAGE.notUpdate);
+         throw new BadRequestError(ALBUM_MESSAGE.notAccept);
       }
 
       if (avatarAlbum) {
@@ -128,7 +135,7 @@ const AlbumController = {
 
          const albumUrl = await Promise.all(uploadPromises);
 
-         data.images.push(...albumUrl);
+         data.images = albumUrl;
       }
 
       const updateAlbum = await AlbumModel.findByIdAndUpdate(
@@ -143,13 +150,16 @@ const AlbumController = {
    }),
 
    removeAlbum: asyncHandler(async (req, res) => {
-      const albumId = req.params.albumId;
+      const { albumId } = req.params;
+      const { userId } = req.user;
 
-      const deleteAlbum = await AlbumModel.findByIdAndDelete(albumId);
+      const album = await AlbumModel.findById(albumId);
 
-      if (!deleteAlbum) {
-         throw new BadRequestError(ALBUM_MESSAGE.notFound);
+      if (album.author._id !== userId) {
+         throw new BadRequestError(ALBUM_MESSAGE.notAccept);
       }
+
+      await AlbumModel.deleteOne(album);
 
       res.status(200).json({
          message: ALBUM_MESSAGE.successfully,

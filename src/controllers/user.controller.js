@@ -4,15 +4,13 @@ import { uploadImage } from "../services/uploadImage.js";
 import BadRequestError from "../errors/BadRequestError.js";
 import { userMessages } from "../utils/userMessage.js";
 import UserModel from "../models/userModel.js";
+import FriendModel from "../models/friendModel.js";
 
 const UserController = {
    getUser: asyncHandler(async (req, res) => {
-      const userId = req.params.userId;
+      const { userId } = req.params;
 
-      const user = await UserModel.findById(userId).select("-password").populate({
-         path: "friends",
-         select: "-password",
-      });
+      const user = await UserModel.findById(userId).select("-password");
 
       if (!user) {
          throw new BadRequestError(userMessages.notEmpty);
@@ -22,10 +20,13 @@ const UserController = {
    }),
 
    updateUser: asyncHandler(async (req, res) => {
-      const { userId } = req.user.userId;
+      const { userId } = req.user;
       const body = req.body;
 
-      const newUser = await UserModel.findByIdAndUpdate(userId, { $set: body }, { new: true }).select("-password");
+      const newUser = await UserModel.findByIdAndUpdate(userId, { $set: body }, { new: true }).select("-password").populate({
+         path: "friends",
+         select: "fullName avatar gender",
+      });
 
       res.status(200).json(newUser);
    }),
@@ -41,7 +42,7 @@ const UserController = {
       const avatarUrl = await uploadImage(file);
 
       const updateUser = await UserModel.findByIdAndUpdate(userId, { avatar: avatarUrl }, { new: true }).select("avatar");
-      
+
       res.status(200).json(updateUser);
    }),
 
@@ -67,7 +68,7 @@ const UserController = {
       });
    }),
 
-   addRemoveFriend: asyncHandler(async (req, res) => {
+   sendFriendRequest: asyncHandler(async (req, res) => {
       const { userId } = req.user;
       const friendId = req.params.userId;
 
@@ -75,21 +76,114 @@ const UserController = {
          throw new BadRequestError("Bạn không thể thêm chính mình");
       }
 
-      const user = await UserModel.findById(userId).select("friends");
-      const friend = await UserModel.findById(friendId).select("friends");
+      const existingFriend = await FriendModel.findOne({ user: userId, friend: friendId });
 
-      if (user.friends.includes(friendId)) {
-         user.friends.pull(friendId);
-         friend.friends.pull(userId);
-      } else {
-         user.friends.push(friendId);
-         friend.friends.push(userId);
+      if (existingFriend) {
+         throw new BadRequestError("Yêu cầu kết bạn đã được gửi trước đó.");
       }
 
-      await user.save();
-      await friend.save();
+      const user = await FriendModel.create({
+         user: userId,
+         friend: friendId,
+         sender: userId,
+      });
+
+      const friend = await FriendModel.create({
+         user: friendId,
+         friend: userId,
+         sender: userId,
+      });
 
       res.status(200).json(user);
+   }),
+
+   acceptFriendRequest: asyncHandler(async (req, res) => {
+      const { userId } = req.user;
+      const friendId = req.params.userId;
+
+      const userRecord = await FriendModel.findOne({ user: userId, friend: friendId });
+      const friendRecord = await FriendModel.findOne({ user: friendId, friend: userId });
+
+      if (!userRecord) {
+         throw new BadRequestError("Yêu cầu kết bạn không tồn tại hoặc đã được xử lý.");
+      }
+      if (!friendRecord) {
+         throw new BadRequestError("Yêu cầu kết bạn không tồn tại hoặc đã được xử lý.");
+      }
+      if (userRecord.sender.toString() === userId) {
+         throw new BadRequestError("Bạn không thể đồng ý khi gửi kết bạn");
+      }
+
+      userRecord.status = 1;
+      friendRecord.status = 1;
+
+      await userRecord.save();
+      await friendRecord.save();
+
+      res.status(200).json(userRecord);
+   }),
+
+   removeFriend: asyncHandler(async (req, res) => {
+      const { userId } = req.user;
+      const friendId = req.params.userId;
+
+      const userRemove = await FriendModel.findOneAndDelete({ user: userId, friend: friendId });
+
+      if (!userRemove) {
+         throw new BadRequestError("Yêu cầu kết bạn không tồn tại hoặc đã được xử lý.");
+      }
+
+      const friendRemove = await FriendModel.findOneAndDelete({ user: friendId, friend: userId });
+
+      if (!friendRemove) {
+         throw new BadRequestError("Yêu cầu kết bạn không tồn tại hoặc đã được xử lý.");
+      }
+
+      res.status(200).json({
+         message: "Đã từ chối yêu cầu kết bạn và xóa kết bạn.",
+      });
+   }),
+
+   getFriendsUser: asyncHandler(async (req, res) => {
+      const { userId } = req.params;
+      const page = req.query.page;
+
+      const options = {
+         page: parseInt(page),
+         limit: 10,
+         select: "friend status ",
+         sort: { createdAt: -1 },
+         populate: {
+            path: "friend",
+            select: "fullName avatar",
+         },
+      };
+
+      const user = await FriendModel.paginate({ user: userId }, options);
+
+      return res.status(200).json(user);
+   }),
+
+   getSingleFriend: asyncHandler(async (req, res) => {
+      const { userId } = req.user;
+      const friendId = req.params.userId;
+
+      if (userId === friendId) {
+         throw new BadRequestError("Bạn đang ở trang của bản thân");
+      }
+
+      const friend = await FriendModel.findOne({
+         $or: [
+            { user: userId, friend: friendId },
+            { user: friendId, friend: userId },
+         ],
+      }).select("status sender");
+
+      if (!friend) {
+         throw new BadRequestError("Yêu cầu không tồn tại");
+      }
+
+      res.status(200).json(friend);
    }),
 };
 

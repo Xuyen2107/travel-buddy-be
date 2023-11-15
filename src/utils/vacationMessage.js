@@ -42,6 +42,8 @@ const vacationMessages = {
    notFound: "Không tìm thấy",
 
    error: "Dữ liệu không hợp lệ",
+
+   notAccept: "Bạn chỉ được thao tác trên bài viết của mình",
 };
 
 export default vacationMessages;
