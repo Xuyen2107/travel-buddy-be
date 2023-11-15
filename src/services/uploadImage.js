@@ -2,14 +2,19 @@ import fs from "fs";
 import { v2 as cloudinary } from "cloudinary";
 
 export const uploadImage = async (file) => {
-   const result = await cloudinary.uploader.upload(file.path, {
-      resource_type: "auto",
-      folder: "Travel_Buddy",
-   });
+   try {
+      const result = await cloudinary.uploader.upload(file.path, {
+         resource_type: "auto",
+         folder: "Travel_Buddy",
+      });
 
-   const imageUrl = result && result.secure_url;
+      const imageUrl = result && result.secure_url;
 
-   fs.unlinkSync(file.path);
+      fs.unlinkSync(file.path);
 
-   return imageUrl;
+      return imageUrl;
+   } catch (error) {
+      console.log(error);
+      fs.unlinkSync(file.path);
+   }
 };

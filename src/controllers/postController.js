@@ -53,7 +53,7 @@ const PostController = {
    }),
 
    getPost: asyncHandler(async (req, res) => {
-      const postId = req.params.postId;
+      const { postId } = req.params;
 
       const post = await PostModel.findById(postId).populate({
          path: "author",
@@ -83,21 +83,30 @@ const PostController = {
 
    getAllPostsByUser: asyncHandler(async (req, res) => {
       const { userId } = req.user;
+      const page = req.query.page;
 
-      const posts = await PostModel.find({ author: userId });
+      const options = {
+         page,
+         limit: 5,
+         sort: { createAt: -1 },
+      };
 
-      if (!posts) {
-         throw new BadRequestError(postMessage.notFound);
-      }
+      const result = await PostModel.paginate({ author: userId }, options);
 
-      res.status(201).json(posts);
+      res.status(201).json(result);
    }),
 
    updatePost: asyncHandler(async (req, res) => {
-      const postId = req.params.postId;
-      const data = req.body.data;
+      const { postId } = req.params;
+      const data = JSON.parse(req.body.data);
       const files = req.files;
       const { userId } = req.user;
+
+      const post = await PostModel.findById(postId);
+
+      if (post.author._id !== userId) {
+         throw new BadRequestError(postMessage.notAccept);
+      }
 
       if (files) {
          const uploadPromises = files.map(async (item) => {
@@ -111,21 +120,22 @@ const PostController = {
          data.images.push(...imageUrl);
       }
 
-      const updatePost = await PostModel.findByIdAndUpdate(
-         postId,
-         {
-            $set: data,
-         },
-         { new: true },
-      );
+      const updatePost = await PostModel.findByIdAndUpdate(postId, { $set: data }, { new: true });
 
       res.status(200).json(updatePost);
    }),
 
    removePost: asyncHandler(async (req, res) => {
-      const postId = req.params.postId;
+      const { postId } = req.params;
+      const { userId } = req.user;
 
-      const deletePost = await PostModel.findByIdAndDelete(postId);
+      const post = await PostModel.findById(postId);
+
+      if (post.author._id !== userId) {
+         throw new BadRequestError(postMessage.notAccept);
+      }
+
+      await PostModel.deleteOne(post);
 
       res.status(200).json({
          message: postMessage.successfully,
@@ -133,7 +143,7 @@ const PostController = {
    }),
 
    likePost: asyncHandler(async (req, res) => {
-      const postId = req.params.postId;
+      const { postId } = req.params;
       const { userId } = req.user;
 
       const post = await PostModel.findById(postId);
