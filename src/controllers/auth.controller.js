@@ -41,6 +41,7 @@ const AuthController = {
 
       const jwtPayload = {
          userId: user.id,
+         
       };
 
       const token = await jwt.sign(jwtPayload, process.env.SECRET_KEY, {
@@ -54,6 +55,7 @@ const AuthController = {
 
    profile: asyncHandler(async (req, res) => {
       const { userId } = req.user;
+      
 
       const currentUser = await UserModel.findById(userId).select("-password");
 
