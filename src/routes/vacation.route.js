@@ -13,8 +13,11 @@ vacationRouter.post(
    VacationController.createVacation,
 );
 vacationRouter.get("/all", VacationController.getAllVacations);
-vacationRouter.get("/:vacationId", VacationController.getVacation);
-vacationRouter.put("/:vacationId/update", uploadFile.single("avatarVacation"), validationMiddleware, VacationController.updateVacation);
-vacationRouter.delete("/:vacationId/remove", VacationController.removeVacation);
+vacationRouter.get("/all-user", VacationController.getAllVacationsUser);
+vacationRouter.get("/all-by-user", VacationController.getVacationsByUserId);
+vacationRouter.get("/single/:vacationId", VacationController.getSingleVacation);
+vacationRouter.put("/update/:vacationId", uploadFile.single("avatarVacation"), validationMiddleware, VacationController.updateVacation);
+vacationRouter.delete("/remove/:vacationId", VacationController.removeVacation);
+vacationRouter.put("/like/:vacationId", VacationController.likeVacation);
 
 export default vacationRouter;

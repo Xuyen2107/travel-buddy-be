@@ -42,7 +42,8 @@ const VacationController = {
    createVacation: asyncHandler(async (req, res) => {
       const { userId } = req.user;
       const file = req.file;
-      const data = jSON.parse(req.body.data);
+      const data = JSON.parse(req.body.data);
+      console.log(req.body.data);
 
       const vacationUrl = await uploadImage(file);
 
@@ -55,10 +56,13 @@ const VacationController = {
       res.status(200).json(vacation);
    }),
 
-   getVacation: asyncHandler(async (req, res) => {
+   getSingleVacation: asyncHandler(async (req, res) => {
       const { vacationId } = req.params;
 
-      const vacation = await VacationModel.findById(vacationId);
+      const vacation = await VacationModel.findById(vacationId).populate({
+         path: "author",
+         select: "fullName avatar",
+      });
 
       if (!vacation) {
          throw new BadRequestError(vacationMessages.notFound);
@@ -68,13 +72,54 @@ const VacationController = {
    }),
 
    getAllVacations: asyncHandler(async (req, res) => {
-      const allVacations = await VacationModel.find();
+      const page = req.query.page;
 
-      if (!allVacations) {
-         throw new BadRequestError(vacationMessages.notFound);
+      const options = {
+         page,
+         limit: 20,
+         sort: { createdAt: -1 },
+         populate: {
+            path: "author",
+            select: "fullName avatar",
+         },
+      };
+
+      const allVacations = await VacationModel.paginate({}, options);
+
+      res.status(200).json(allVacations.docs);
+   }),
+
+   getAllVacationsUser: asyncHandler(async (req, res) => {
+      const { userId } = req.user;
+      const page = req.query.page;
+
+      const options = {
+         page,
+         limit: 10,
+         sort: { createAt: -1 },
+         populate: {
+            path: "author",
+            select: "fullName avatar",
+         },
+      };
+
+      const allVacationsUser = await VacationModel.paginate({ author: userId }, options);
+
+      res.status(200).json(allVacationsUser.docs);
+   }),
+
+   getVacationsByUserId: asyncHandler(async (req, res, next) => {
+      const { userId } = req.user;
+
+      const vacations = await VacationModel.find({
+         $or: [{ author: userId }, { listUser: userId }],
+      });
+
+      if (vacations.length === 0) {
+         return res.status(404).json({ message: "Không có kỳ nghỉ nào được tìm thấy" });
       }
 
-      res.status(200).json(allVacations);
+      res.status(200).json(vacations);
    }),
 
    updateVacation: asyncHandler(async (req, res) => {
@@ -85,19 +130,22 @@ const VacationController = {
 
       const vacation = await VacationModel.findById(vacationId);
 
-      if (vacation.author._id !== userId) {
+      if (vacation.author._id.toString() !== userId) {
          throw new BadRequestError(vacationMessages.notAccept);
+      }
+
+      if (!data.avatarVacation && !file) {
+         throw new BadRequestError(vacationMessages.avatarVacation.notEmpty);
       }
 
       if (file) {
          const vacationUrl = await uploadImage(file);
-
          data.avatarVacation = vacationUrl;
       }
+      await vacation.updateOne(data);
+      // await vacation.save();
 
-      const updatedVacation = await VacationModel.findByIdAndUpdate(vacationId, { $set: data }, { new: true });
-
-      res.status(200).json(updatedVacation);
+      res.status(200).json(vacation);
    }),
 
    removeVacation: asyncHandler(async (req, res) => {
@@ -115,6 +163,30 @@ const VacationController = {
       res.status(200).json({
          message: vacationMessages.successfully,
       });
+   }),
+
+   likeVacation: asyncHandler(async (req, res) => {
+      const { vacationId } = req.params;
+      const { userId } = req.user;
+
+      const vacation = await VacationModel.findById(vacationId).populate({
+         path: "author",
+         select: "fullName avatar",
+      });
+
+      if (!vacation) {
+         throw new BadRequestError(postMessage.notFound);
+      }
+
+      if (vacation.likes.includes(userId)) {
+         vacation.likes.pull(userId);
+      } else {
+         vacation.likes.push(userId);
+      }
+
+      await vacation.save();
+
+      res.status(200).json(vacation);
    }),
 };
 

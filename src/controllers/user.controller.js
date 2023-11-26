@@ -23,10 +23,7 @@ const UserController = {
       const { userId } = req.user;
       const body = req.body;
 
-      const newUser = await UserModel.findByIdAndUpdate(userId, { $set: body }, { new: true }).select("-password").populate({
-         path: "friends",
-         select: "fullName avatar gender",
-      });
+      const newUser = await UserModel.findByIdAndUpdate(userId, { $set: body }, { new: true }).select("-password");
 
       res.status(200).json(newUser);
    }),
@@ -41,7 +38,7 @@ const UserController = {
 
       const avatarUrl = await uploadImage(file);
 
-      const updateUser = await UserModel.findByIdAndUpdate(userId, { avatar: avatarUrl }, { new: true }).select("avatar");
+      const updateUser = await UserModel.findByIdAndUpdate(userId, { avatar: avatarUrl }, { new: true }).select("-password");
 
       res.status(200).json(updateUser);
    }),
@@ -76,7 +73,12 @@ const UserController = {
          throw new BadRequestError("Bạn không thể thêm chính mình");
       }
 
-      const existingFriend = await FriendModel.findOne({ user: userId, friend: friendId });
+      const existingFriend = await FriendModel.findOne({
+         $or: [
+            { user: userId, friend: friendId },
+            { user: friendId, friend: userId },
+         ],
+      });
 
       if (existingFriend) {
          throw new BadRequestError("Yêu cầu kết bạn đã được gửi trước đó.");
@@ -102,20 +104,23 @@ const UserController = {
       const friendId = req.params.userId;
 
       const userRecord = await FriendModel.findOne({ user: userId, friend: friendId });
-      const friendRecord = await FriendModel.findOne({ user: friendId, friend: userId });
 
       if (!userRecord) {
          throw new BadRequestError("Yêu cầu kết bạn không tồn tại hoặc đã được xử lý.");
       }
-      if (!friendRecord) {
-         throw new BadRequestError("Yêu cầu kết bạn không tồn tại hoặc đã được xử lý.");
-      }
+
       if (userRecord.sender.toString() === userId) {
          throw new BadRequestError("Bạn không thể đồng ý khi gửi kết bạn");
       }
 
-      userRecord.status = 1;
-      friendRecord.status = 1;
+      const friendRecord = await FriendModel.findOne({ user: friendId, friend: userId });
+
+      if (!friendRecord) {
+         throw new BadRequestError("Yêu cầu kết bạn không tồn tại hoặc đã được xử lý.");
+      }
+
+      userRecord.status = 2;
+      friendRecord.status = 2;
 
       await userRecord.save();
       await friendRecord.save();
@@ -159,9 +164,9 @@ const UserController = {
          },
       };
 
-      const user = await FriendModel.paginate({ user: userId }, options);
+      const result = await FriendModel.paginate({ user: userId }, options);
 
-      return res.status(200).json(user);
+      return res.status(200).json(result.docs);
    }),
 
    getSingleFriend: asyncHandler(async (req, res) => {
@@ -169,7 +174,7 @@ const UserController = {
       const friendId = req.params.userId;
 
       if (userId === friendId) {
-         throw new BadRequestError("Bạn đang ở trang của bản thân");
+         throw new BadRequestError("Bạn đang ở trang cá nhân bản thân");
       }
 
       const friend = await FriendModel.findOne({
@@ -177,7 +182,7 @@ const UserController = {
             { user: userId, friend: friendId },
             { user: friendId, friend: userId },
          ],
-      }).select("status sender");
+      });
 
       if (!friend) {
          throw new BadRequestError("Yêu cầu không tồn tại");

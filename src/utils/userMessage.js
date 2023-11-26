@@ -56,12 +56,16 @@ export const userMessages = {
       notEmpty: "Mô tả không được để trống",
    },
 
+   city: {
+      notEmpty: "Thành phố không được để trống",
+   },
+
    otp: {
       notSent: "Bạn chưa gửi OTP",
       wrongOtp: "OTP không đúng",
       notEntered: "Bạn chưa nhập OTP",
    },
-   
+
    successfully: "Thành công",
 
    notEmpty: "Không tìm thấy",

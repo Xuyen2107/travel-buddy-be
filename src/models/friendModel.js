@@ -16,12 +16,12 @@ const FriendSchema = new mongoose.Schema({
 
    status: {
       type: Number,
-      enum: [0, 1, 2], // 0: Chờ xác nhận, 1: Đồng ý, 2: Từ chối
-      default: 0, // Trạng thái mặc định là "Chờ xác nhận" (0)
+      enum: [1, 2], // 1: Chờ xác nhận, 2: Đồng ý,
+      default: 1,
    },
 
    sender: {
-      type: mongoose.Schema.ObjectId,
+      type: mongoose.Schema.Types.ObjectId,
       required: true,
    },
 });

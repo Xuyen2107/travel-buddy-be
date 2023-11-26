@@ -136,6 +136,7 @@ const userValidation = (method) => {
          body("dateOfBirth").notEmpty().withMessage(userMessages.dateOfBirth.notEmpty),
          body("gender").notEmpty().withMessage(userMessages.gender.notEmpty),
          body("describe").notEmpty().withMessage(userMessages.describe.notEmpty),
+         body("city").notEmpty().withMessage(userMessages.city.notEmpty),
       ]);
    }
 
