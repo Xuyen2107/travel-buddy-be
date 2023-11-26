@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
+import mongoosePaginate from "mongoose-paginate-v2";
 
 const UserSchema = new mongoose.Schema(
    {
@@ -33,16 +34,7 @@ const UserSchema = new mongoose.Schema(
 
       avatar: {
          type: String,
-      },
-
-      friends: {
-         type: [
-            {
-               type: mongoose.Schema.Types.ObjectId,
-               ref: "Users",
-            },
-         ],
-         default: [],
+         default: "https://res.cloudinary.com/dcgytjpvn/image/upload/v1700399941/Default/default-avatar_cqksnp.jpg",
       },
 
       age: {
@@ -54,11 +46,16 @@ const UserSchema = new mongoose.Schema(
       },
 
       gender: {
-         type: String,
+         type: Number,
+         enum: [1, 2, 3],
       },
 
       describe: {
          type: String,
+      },
+
+      city: {
+         type: Object,
       },
    },
 
@@ -80,6 +77,10 @@ UserSchema.pre("save", async function (next) {
    }
 });
 
+UserSchema.plugin(mongoosePaginate);
+
 const UserModel = mongoose.model("Users", UserSchema);
+
+UserModel.paginate().then({});
 
 export default UserModel;

@@ -9,11 +9,15 @@ const AuthController = {
    register: asyncHandler(async (req, res) => {
       const { fullName, userName, email, phoneNumber, password, rePassword } = req.body;
 
-      if (rePassword !== password) {
-         throw new UserError(400, userMessages.password.passwordMismatch);
+      if (userName.toString() === password.toString()) {
+         throw new BadRequestError("Username và mật khẩu phải khác nhau");
       }
 
-      await UserModel.create({
+      if (rePassword !== password) {
+         throw new BadRequestError(userMessages.password.passwordMismatch);
+      }
+
+      const user = await UserModel.create({
          fullName,
          userName,
          email,
@@ -21,9 +25,15 @@ const AuthController = {
          password,
       });
 
-      res.status(201).json({
-         message: userMessages.successfully,
+      const jwtPayload = {
+         userId: user._id,
+      };
+
+      const token = await jwt.sign(jwtPayload, process.env.SECRET_KEY, {
+         expiresIn: "72h",
       });
+
+      res.status(200).json(token);
    }),
 
    login: asyncHandler(async (req, res) => {
@@ -40,16 +50,14 @@ const AuthController = {
       }
 
       const jwtPayload = {
-         userId: user.id,
+         userId: user._id,
       };
 
       const token = await jwt.sign(jwtPayload, process.env.SECRET_KEY, {
          expiresIn: "72h",
       });
 
-      res.status(200).json({
-         accessToken: token,
-      });
+      res.status(200).json(token);
    }),
 
    profile: asyncHandler(async (req, res) => {

@@ -19,7 +19,26 @@ const multerStorage = multer.diskStorage({
       const filename = `${originalFilename}-${uniqueSuffix}.${fileExtension}`;
       cb(null, filename);
    },
+
+   fileFilter: function (_req, file, cb) {
+      checkFileType(file, cb);
+   },
 });
+
+function checkFileType(file, cb) {
+   // Allowed ext
+   const filetypes = /jpeg|jpg|png|gif/;
+   // Check ext
+   const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+   // Check mime
+   const mimetype = filetypes.test(file.mimetype);
+
+   if (mimetype && extname) {
+      return cb(null, true);
+   } else {
+      return cb(null, false);
+   }
+}
 
 const uploadFile = multer({
    storage: multerStorage,
