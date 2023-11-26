@@ -34,8 +34,7 @@ const UserSchema = new mongoose.Schema(
 
       avatar: {
          type: String,
-         default:
-            "https://console.cloudinary.com/pm/c-baf4ffe71199b89946bc2917505517/media-explorer/Default?assetId=d1a9eeecb54410f2d32866df2e572cb8",
+         default: "https://res.cloudinary.com/dcgytjpvn/image/upload/v1700399941/Default/default-avatar_cqksnp.jpg",
       },
 
       age: {
@@ -48,6 +47,7 @@ const UserSchema = new mongoose.Schema(
 
       gender: {
          type: Number,
+         enum: [1, 2, 3],
       },
 
       describe: {
@@ -55,7 +55,7 @@ const UserSchema = new mongoose.Schema(
       },
 
       city: {
-         type: Number,
+         type: Object,
       },
    },
 

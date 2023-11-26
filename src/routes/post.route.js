@@ -8,7 +8,8 @@ const postRouter = express.Router();
 
 postRouter.post("/create", uploadFile.array("images"), PostController.validatePost, validationMiddleware, PostController.createPost);
 postRouter.get("/all", PostController.getAllPosts);
-postRouter.get("/all-by-user", PostController.getAllPostsByUser);
+postRouter.get("/all-by-user/:userId", PostController.getAllPostsByUser);
+postRouter.get("/by-milestone/:milestoneId", PostController.getAllPostsMilestones);
 postRouter.get("/:postId", paramValidation("postId"), validationMiddleware, PostController.getPost);
 postRouter.put("/:postId/update", paramValidation("postId"), validationMiddleware, PostController.updatePost);
 postRouter.delete("/:postId/delete", paramValidation("postId"), validationMiddleware, PostController.removePost);

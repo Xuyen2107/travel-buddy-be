@@ -87,9 +87,13 @@ const AlbumController = {
          page,
          limit: 10,
          sort: { createAt: -1 },
+         populate: {
+            path: "author",
+            select: "fullName avatar",
+         },
       };
 
-      const result = await AlbumModel.paginate({}, options)
+      const result = await AlbumModel.paginate({}, options);
 
       res.status(200).json(result);
    }),
@@ -102,6 +106,10 @@ const AlbumController = {
          page,
          limit: 10,
          sort: { createAt: -1 },
+         populate: {
+            path: "author",
+            select: "fullName avatar",
+         },
       };
 
       const result = await AlbumModel.paginate({ author: userId }, options);
