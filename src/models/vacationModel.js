@@ -6,25 +6,25 @@ const VacationSchema = new mongoose.Schema(
       author: {
          type: mongoose.Schema.Types.ObjectId,
          ref: "Users",
-         require: true,
+         required: true,
       },
 
       title: {
          type: String,
-         require: true,
+         required: true,
       },
 
       avatarVacation: {
          type: String,
-         require: true,
+         required: true,
       },
 
       description: {
          type: String,
-         require: true,
+         required: true,
       },
 
-      listUser: [
+      listUsers: [
          {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Users",
@@ -32,37 +32,33 @@ const VacationSchema = new mongoose.Schema(
       ],
 
       isPublic: {
-         type: String,
-         default: true,
+         type: Number,
+         enum: [1, 2, 3], //1: Công khai, 2: bạn bè, 3: chỉ mình tôi
+         default: 1,
       },
 
       startDay: {
          type: String,
-         require: true,
+         required: true,
       },
 
       endDay: {
          type: String,
-         require: true,
+         required: true,
       },
 
       milestones: [
          {
             time: {
                type: String,
-               require: true,
+               required: true,
             },
             description: {
                type: String,
-               require: true,
+               required: true,
             },
          },
       ],
-
-      views: {
-         type: Array,
-         default: [],
-      },
 
       likes: {
          type: [

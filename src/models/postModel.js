@@ -10,19 +10,14 @@ const PostSchema = new mongoose.Schema(
       },
 
       vacation: {
-         type: String,
+         type: mongoose.Schema.Types.ObjectId,
+         ref: "Vacations",
          required: true,
       },
 
-      milestones: {
-         time: {
-            type: String,
-            required: true,
-         },
-         description: {
-            type: String,
-            required: true,
-         },
+      milestone: {
+         type: mongoose.Schema.Types.ObjectId,
+         required: true,
       },
 
       content: {
@@ -35,8 +30,9 @@ const PostSchema = new mongoose.Schema(
       },
 
       isPublic: {
-         type: String,
+         type: Number,
          required: true,
+         enum: ["1", "2", "3"],
       },
 
       likes: {

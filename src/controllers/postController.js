@@ -4,6 +4,7 @@ import PostModel from "../models/postModel.js";
 import { uploadImage } from "../services/uploadImage.js";
 import BadRequestError from "../errors/BadRequestError.js";
 import { postMessage } from "../utils/postMessage.js";
+import mongoose from "mongoose";
 
 const PostController = {
    validatePost: [
@@ -19,10 +20,17 @@ const PostController = {
          try {
             const data = value ? JSON.parse(value) : {};
 
-            if (data && data.vacation && data.milestones && data.milestones.time && data.milestones.description && data.content && data.isPublic) {
+            if (
+               data &&
+               data.vacation &&
+               mongoose.Types.ObjectId.isValid(data.vacation) &&
+               data.milestone &&
+               mongoose.Types.ObjectId.isValid(data.milestone) &&
+               data.content &&
+               data.isPublic
+            ) {
                return true;
             }
-
             throw new BadRequestError(postMessage.error);
          } catch (error) {
             throw new Error(postMessage.error);
@@ -55,16 +63,40 @@ const PostController = {
    getPost: asyncHandler(async (req, res) => {
       const { postId } = req.params;
 
-      const post = await PostModel.findById(postId).populate({
-         path: "author",
-         select: "fullName avatar",
-      });
+      const post = await PostModel.findById(postId)
+         .populate({ path: "author", select: "fullName avatar" })
+         .populate({ path: "vacation", select: "title milestones" });
 
       if (!post) {
          throw new BadRequestError(postMessage.notFound);
       }
 
       res.status(200).json(post);
+   }),
+
+   getAllPostsMilestones: asyncHandler(async (req, res) => {
+      const { milestoneId } = req.params;
+      const page = req.query.page;
+
+      const options = {
+         page,
+         limit: 20,
+         sort: { createdAt: -1 },
+         populate: [
+            {
+               path: "author",
+               select: "fullName avatar",
+            },
+            {
+               path: "vacation",
+               select: "title milestones",
+            },
+         ],
+      };
+
+      const result = await PostModel.paginate({ milestone: milestoneId }, options);
+
+      res.status(200).json(result.docs);
    }),
 
    getAllPosts: asyncHandler(async (req, res) => {
@@ -74,26 +106,40 @@ const PostController = {
          page,
          limit: 5,
          sort: { createAt: -1 },
+         populate: {
+            path: "author",
+            select: "fullName avatar",
+         },
       };
 
       const result = await PostModel.paginate({}, options);
 
-      res.status(200).json(result);
+      res.status(200).json(result.docs);
    }),
 
    getAllPostsByUser: asyncHandler(async (req, res) => {
-      const { userId } = req.user;
+      const { userId } = req.params;
       const page = req.query.page;
 
       const options = {
          page,
          limit: 5,
-         sort: { createAt: -1 },
+         sort: { createdAt: -1 },
+         populate: [
+            {
+               path: "author",
+               select: "fullName avatar",
+            },
+            {
+               path: "vacation",
+               select: "title milestones",
+            },
+         ],
       };
 
       const result = await PostModel.paginate({ author: userId }, options);
 
-      res.status(201).json(result);
+      res.status(201).json(result.docs);
    }),
 
    updatePost: asyncHandler(async (req, res) => {
@@ -146,7 +192,10 @@ const PostController = {
       const { postId } = req.params;
       const { userId } = req.user;
 
-      const post = await PostModel.findById(postId);
+      const post = await PostModel.findById(postId).populate({
+         path: "author",
+         select: "fullName avatar",
+      });
 
       if (!post) {
          throw new BadRequestError(postMessage.notFound);
