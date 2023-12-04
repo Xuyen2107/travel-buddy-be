@@ -7,6 +7,7 @@ import { connectToDatabase } from "./configs/db.config.js";
 import { configCloudinary } from "./configs/cloudinary.config.js";
 import { errorHandlerMiddleware } from "./middlewares/error.middleware.js";
 import { formatDate } from "./utils/formatDate.js";
+import firebaseConfig from "./configs/firebase.config.js";
 
 const app = express();
 

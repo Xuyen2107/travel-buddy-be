@@ -7,6 +7,8 @@ import postRouter from "./post.route.js";
 import userRoute from "./user.route.js";
 import vacationRouter from "./vacation.route.js";
 import passwordRoute from "./password.route.js";
+import commentRouter from "./comment.route.js";
+import replyCommentRouter from "./replyComment.route.js";
 
 const appRoute = express.Router();
 
@@ -18,5 +20,7 @@ appRoute.use("/user", authMiddleware, userRoute);
 appRoute.use("/vacation", authMiddleware, vacationRouter);
 appRoute.use("/post", authMiddleware, postRouter);
 appRoute.use("/album", authMiddleware, albumRouter);
+appRoute.use("/comment", authMiddleware, commentRouter);
+appRoute.use("/reply-comment", authMiddleware, replyCommentRouter);
 
 export default appRoute;

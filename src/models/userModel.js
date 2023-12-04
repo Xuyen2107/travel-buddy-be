@@ -57,6 +57,11 @@ const UserSchema = new mongoose.Schema(
       city: {
          type: Object,
       },
+
+      keywords: {
+         type: Array,
+         require: true,
+      },
    },
 
    { timestamps: true },
