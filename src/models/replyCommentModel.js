@@ -1,36 +1,37 @@
 import mongoose from "mongoose";
 import mongoosePaginate from "mongoose-paginate-v2";
 
-const CommentSchema = new mongoose.Schema(
+const ReplyCommentSchema = new mongoose.Schema(
    {
       author: {
          type: mongoose.Schema.Types.ObjectId,
          ref: "Users",
+         required: true,
       },
 
-      postId: {
+      commentId: {
          type: mongoose.Schema.Types.ObjectId,
          required: true,
+      },
+
+      replyUser: {
+         type: mongoose.Schema.Types.ObjectId,
+         ref: "Users",
       },
 
       commentContent: {
          type: String,
          required: true,
       },
-
-      isDeleted: {
-         type: Boolean,
-         default: false,
-      },
    },
 
    { timestamps: true },
 );
 
-CommentSchema.plugin(mongoosePaginate);
+ReplyCommentSchema.plugin(mongoosePaginate);
 
-const CommentModel = mongoose.model("Comments", CommentSchema);
+const ReplyCommentModel = mongoose.model("ReplyComment", ReplyCommentSchema);
 
-CommentModel.paginate().then({});
+ReplyCommentModel.paginate().then({});
 
-export default CommentModel;
+export default ReplyCommentModel;

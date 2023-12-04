@@ -13,8 +13,8 @@ vacationRouter.post(
    VacationController.createVacation,
 );
 vacationRouter.get("/all", VacationController.getAllVacations);
-vacationRouter.get("/all-user", VacationController.getAllVacationsUser);
-vacationRouter.get("/all-by-user", VacationController.getVacationsByUserId);
+vacationRouter.get("/all-by-user", VacationController.getAllVacationsByUser);
+vacationRouter.get("/all-have-user", VacationController.getVacationsHaveUser);
 vacationRouter.get("/single/:vacationId", VacationController.getSingleVacation);
 vacationRouter.put("/update/:vacationId", uploadFile.single("avatarVacation"), validationMiddleware, VacationController.updateVacation);
 vacationRouter.delete("/remove/:vacationId", VacationController.removeVacation);
