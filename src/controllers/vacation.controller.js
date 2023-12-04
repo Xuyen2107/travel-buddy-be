@@ -89,7 +89,7 @@ const VacationController = {
       res.status(200).json(allVacations.docs);
    }),
 
-   getAllVacationsUser: asyncHandler(async (req, res) => {
+   getAllVacationsByUser: asyncHandler(async (req, res) => {
       const { userId } = req.user;
       const page = req.query.page;
 
@@ -108,7 +108,7 @@ const VacationController = {
       res.status(200).json(allVacationsUser.docs);
    }),
 
-   getVacationsByUserId: asyncHandler(async (req, res, next) => {
+   getVacationsHaveUser: asyncHandler(async (req, res, next) => {
       const { userId } = req.user;
 
       const vacations = await VacationModel.find({
