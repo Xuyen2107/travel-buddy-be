@@ -11,6 +11,8 @@ import chatRoute from "./chat.route.js";
 import messageRoute from "./message.route.js";
 import { initializeApp } from "firebase/app";
 import { getMessaging, getToken, onMessage } from "firebase/messaging";
+import commentRouter from "./comment.route.js";
+import replyCommentRouter from "./replyComment.route.js";
 
 const appRoute = express.Router();
 
@@ -51,5 +53,7 @@ appRoute.use("/messages", authMiddleware, messageRoute);
 //          console.log(response.successCount + " messages were sent successfully");
 //       });
 // });
+appRoute.use("/comment", authMiddleware, commentRouter);
+appRoute.use("/reply-comment", authMiddleware, replyCommentRouter);
 
 export default appRoute;
