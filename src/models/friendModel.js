@@ -28,6 +28,6 @@ const FriendSchema = new mongoose.Schema({
 
 FriendSchema.plugin(mongoosePaginate);
 
-const FriendModel = mongoose.model("Friend", FriendSchema);
+const FriendModel = mongoose.model("Friends", FriendSchema);
 
 export default FriendModel;

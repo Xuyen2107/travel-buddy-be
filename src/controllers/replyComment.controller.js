@@ -21,10 +21,17 @@ const ReplyCommentController = {
    getAllByCommentId: asyncHandler(async (req, res) => {
       const { commentId } = req.params;
       const page = req.query.page;
+      const limit = req.query.limit;
+
+      const count = await ReplyCommentModel.countDocuments({ commentId: commentId });
+
+      if (count === 0) {
+         throw new BadRequestError("Không có bình luận");
+      }
 
       const options = {
-         page,
-         limit: 20,
+         page: page || 1,
+         limit: limit || 5,
          sort: { createdAt: -1 },
          populate: [
             {
@@ -40,11 +47,7 @@ const ReplyCommentController = {
 
       const allReplyComments = await ReplyCommentModel.paginate({ commentId: commentId }, options);
 
-      if (allComments.docs.length === 0) {
-         throw new BadRequestError("Không có bình luận");
-      }
-
-      res.status(200).json(allReplyComments.docs);
+      res.status(200).json(allReplyComments);
    }),
 
    updateComment: asyncHandler(async (req, res) => {
@@ -81,10 +84,6 @@ const ReplyCommentController = {
 
       if (!replyComment) {
          throw new BadRequestError("Không có bình luận");
-      }
-
-      if (replyComment.author.toString() !== userId) {
-         throw new BadRequestError("Bạn chỉ được xóa bình luận của bản thân");
       }
 
       await replyComment.deleteOne();

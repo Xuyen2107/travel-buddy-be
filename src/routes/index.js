@@ -13,6 +13,7 @@ import { initializeApp } from "firebase/app";
 import { getMessaging, getToken, onMessage } from "firebase/messaging";
 import commentRouter from "./comment.route.js";
 import replyCommentRouter from "./replyComment.route.js";
+import notifyRouter from "./notify.route.js";
 
 const appRoute = express.Router();
 
@@ -55,5 +56,6 @@ appRoute.use("/messages", authMiddleware, messageRoute);
 // });
 appRoute.use("/comment", authMiddleware, commentRouter);
 appRoute.use("/reply-comment", authMiddleware, replyCommentRouter);
+appRoute.use("/notify", authMiddleware, notifyRouter);
 
 export default appRoute;

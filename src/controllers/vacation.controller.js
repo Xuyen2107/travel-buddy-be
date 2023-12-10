@@ -4,6 +4,8 @@ import VacationModel from "../models/vacationModel.js";
 import BadRequestError from "../errors/BadRequestError.js";
 import { uploadImage } from "../services/uploadImage.js";
 import vacationMessages from "../utils/vacationMessage.js";
+import FriendModel from "../models/friendModel.js";
+import NotifyModel from "../models/notifyModel.js";
 
 const VacationController = {
    validateVacation: [
@@ -72,35 +74,50 @@ const VacationController = {
    }),
 
    getAllVacations: asyncHandler(async (req, res) => {
+      const { userId } = req.user;
       const page = req.query.page;
 
       const options = {
          page,
          limit: 20,
          sort: { createdAt: -1 },
-         populate: {
-            path: "author",
-            select: "fullName avatar",
-         },
+         populate: [
+            { path: "author", select: "fullName avatar" },
+            { path: "listUsers", select: "fullName" },
+         ],
       };
 
-      const allVacations = await VacationModel.paginate({}, options);
+      const friendIds = await FriendModel.find({ user: userId, status: 2 }).select("friend -_id");
+
+      const allVacations = await VacationModel.paginate(
+         {
+            $or: [
+               { isPublic: 1 },
+               { author: userId },
+               {
+                  isPublic: 2,
+                  author: { $in: friendIds.map((item) => item.friend) },
+               },
+            ],
+         },
+         options,
+      );
 
       res.status(200).json(allVacations.docs);
    }),
 
    getAllVacationsByUser: asyncHandler(async (req, res) => {
-      const { userId } = req.user;
+      const { userId } = req.params;
       const page = req.query.page;
 
       const options = {
          page,
          limit: 10,
          sort: { createAt: -1 },
-         populate: {
-            path: "author",
-            select: "fullName avatar",
-         },
+         populate: [
+            { path: "author", select: "fullName avatar" },
+            { path: "listUsers", select: "fullName" },
+         ],
       };
 
       const allVacationsUser = await VacationModel.paginate({ author: userId }, options);
@@ -154,15 +171,13 @@ const VacationController = {
 
       const vacation = await VacationModel.findById(vacationId);
 
-      if (vacation.author._id !== userId) {
+      if (vacation.author.toString() !== userId) {
          throw new BadRequestError(vacationMessages.notAccept);
       }
 
       await VacationModel.deleteOne(vacation);
 
-      res.status(200).json({
-         message: vacationMessages.successfully,
-      });
+      res.status(200).json(vacationId);
    }),
 
    likeVacation: asyncHandler(async (req, res) => {
@@ -182,6 +197,16 @@ const VacationController = {
          vacation.likes.pull(userId);
       } else {
          vacation.likes.push(userId);
+
+         if (vacation.author._id.toString() !== userId) {
+            await NotifyModel.create({
+               author: userId,
+               title: "Thích bài viêt",
+               content: "đã thích bài viết của",
+               recipients: [...vacation.listUsers, vacation.author._id.toString()],
+               link: `/vacation/${vacation._id.toString()}`,
+            });
+         }
       }
 
       await vacation.save();
