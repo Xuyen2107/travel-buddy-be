@@ -1,35 +1,39 @@
-import messageModel from "../models/messageModel.js";
+import MessageModel from "../models/messageModel.js";
 import asyncHandler from "express-async-handler";
 
 const messageController = {
    createMessage: asyncHandler(async (req, res) => {
-      const { chatId, senderId, text } = req.body;
+      const { userId } = req.user;
+      const { chatId, text } = req.body;
 
-      const message = new messageModel({
+      const message = new MessageModel({
          chatId,
-         senderId,
+         senderId: userId,
          text,
       });
 
-      try {
-         const response = await message.save();
-         res.status(200).json(response);
-      } catch (error) {
-         console.log(error);
-         res.status(500).json(error);
-      }
+      await message.save();
+
+      res.status(200).json(message);
    }),
 
    getMessages: asyncHandler(async (req, res) => {
       const { chatId } = req.params;
+      const page = req.query.page;
 
-      try {
-         const messages = await messageModel.find({ chatId });
-         res.status(200).json(messages);
-      } catch (error) {
-         console.log(error);
-         res.status(500).json(error);
-      }
+      const options = {
+         page,
+         limit: 20,
+         sort: { createdAt: -1 },
+         populate: {
+            path: "senderId",
+            select: "avatar",
+         },
+      };
+
+      const messages = await MessageModel.paginate({ chatId: chatId }, options);
+
+      res.status(200).json(messages);
    }),
 };
 
