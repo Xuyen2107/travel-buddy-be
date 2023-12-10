@@ -5,7 +5,6 @@ import BadRequestError from "../errors/BadRequestError.js";
 import { uploadImage } from "../services/uploadImage.js";
 import vacationMessages from "../utils/vacationMessage.js";
 import FriendModel from "../models/friendModel.js";
-import NotifyModel from "../models/notifyModel.js";
 
 const VacationController = {
    validateVacation: [
@@ -196,16 +195,6 @@ const VacationController = {
          vacation.likes.pull(userId);
       } else {
          vacation.likes.push(userId);
-
-         if (vacation.author._id.toString() !== userId) {
-            await NotifyModel.create({
-               author: userId,
-               title: "Thích bài viêt",
-               content: "đã thích bài viết của",
-               recipients: [...vacation.listUsers, vacation.author._id.toString()],
-               link: `/vacation/${vacation._id.toString()}`,
-            });
-         }
       }
 
       await vacation.save();
