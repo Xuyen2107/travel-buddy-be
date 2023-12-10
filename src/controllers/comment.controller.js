@@ -20,10 +20,16 @@ const CommentController = {
    getCommentsByPost: asyncHandler(async (req, res) => {
       const { postId } = req.params;
       const page = req.query.page;
+      const limit = req.query.limit;
+
+      const count = await CommentModel.countDocuments({ postId: postId });
+      if (count === 0) {
+         throw new BadRequestError("Không có comment");
+      }
 
       const options = {
-         page,
-         limit: 20,
+         page: page || 1,
+         limit: limit || 10,
          sort: { createdAt: -1 },
          populate: {
             path: "author",
@@ -33,11 +39,15 @@ const CommentController = {
 
       const allComments = await CommentModel.paginate({ postId: postId }, options);
 
-      if (allComments.docs.length === 0) {
-         throw new BadRequestError("Không có comment");
-      }
+      res.status(200).json(allComments);
+   }),
 
-      res.status(200).json(allComments.docs);
+   getNumberComment: asyncHandler(async (req, res) => {
+      const { postId } = req.params;
+
+      const count = await CommentModel.countDocuments({ postId: postId });
+
+      res.status(200).json(count);
    }),
 
    updateComment: asyncHandler(async (req, res) => {
@@ -74,11 +84,6 @@ const CommentController = {
       if (!comment) {
          throw new BadRequestError("Không có comment");
       }
-
-      if (comment.author.toString() !== userId) {
-         throw new BadRequestError("Bạn chỉ được xóa bình luận của bản thân");
-      }
-
       comment.isDeleted = true;
       await comment.save();
 
