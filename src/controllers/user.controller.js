@@ -191,6 +191,8 @@ const UserController = {
    getSingleFriend: asyncHandler(async (req, res) => {
       const { userId } = req.user;
       const friendId = req.params.userId;
+      console.log(userId);
+      console.log(friendId);
 
       if (userId === friendId) {
          throw new BadRequestError("Bạn đang ở trang cá nhân bản thân");
@@ -211,9 +213,9 @@ const UserController = {
    }),
 
    searchUser: asyncHandler(async (req, res) => {
-      const { keywordUser } = req.body;
+      const keywordUser = req.query.keywordUser;
       const uppercaseKeywordUser = keywordUser.toUpperCase();
-      const allUser = await UserModel.find({ fullName: { $in: uppercaseKeywordUser } }).select("fullName avatar");
+      const allUser = await UserModel.find({ keywords: { $in: uppercaseKeywordUser } }).select("fullName avatar");
       if (allUser.length === 0) {
          throw new BadRequestError("Không có dữ liệu ");
       }
