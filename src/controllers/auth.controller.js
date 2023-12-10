@@ -4,6 +4,7 @@ import asyncHandler from "express-async-handler";
 import UserModel from "../models/userModel.js";
 import BadRequestError from "../errors/BadRequestError.js";
 import { userMessages } from "../utils/userMessage.js";
+import { generateKeywords } from "../services/keyword.js";
 
 const AuthController = {
    register: asyncHandler(async (req, res) => {
@@ -23,6 +24,7 @@ const AuthController = {
          email,
          phoneNumber,
          password,
+         keywords: generateKeywords(fullName),
       });
 
       const jwtPayload = {
@@ -56,6 +58,7 @@ const AuthController = {
       const token = await jwt.sign(jwtPayload, process.env.SECRET_KEY, {
          expiresIn: "72h",
       });
+      console.log(token);
 
       res.status(200).json(token);
    }),
@@ -64,6 +67,10 @@ const AuthController = {
       const { userId } = req.user;
 
       const currentUser = await UserModel.findById(userId).select("-password");
+
+      if (!currentUser) {
+         throw new BadRequestError("Không tìm thấy");
+      }
 
       res.status(200).json(currentUser);
    }),

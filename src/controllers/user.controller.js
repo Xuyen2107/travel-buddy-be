@@ -156,7 +156,7 @@ const UserController = {
       const options = {
          page: parseInt(page),
          limit: 10,
-         select: "friend status ",
+         select: "friend",
          sort: { createdAt: -1 },
          populate: {
             path: "friend",
@@ -164,7 +164,26 @@ const UserController = {
          },
       };
 
-      const result = await FriendModel.paginate({ user: userId }, options);
+      const result = await FriendModel.paginate({ user: userId, status: 2 }, options);
+
+      return res.status(200).json(result.docs);
+   }),
+   getFriendsSend: asyncHandler(async (req, res) => {
+      const { userId } = req.params;
+      const page = req.query.page;
+
+      const options = {
+         page: parseInt(page),
+         limit: 10,
+         select: "friend sender",
+         sort: { createdAt: -1 },
+         populate: {
+            path: "friend",
+            select: "fullName avatar",
+         },
+      };
+
+      const result = await FriendModel.paginate({ user: userId, status: 1 }, options);
 
       return res.status(200).json(result.docs);
    }),
@@ -172,6 +191,8 @@ const UserController = {
    getSingleFriend: asyncHandler(async (req, res) => {
       const { userId } = req.user;
       const friendId = req.params.userId;
+      console.log(userId);
+      console.log(friendId);
 
       if (userId === friendId) {
          throw new BadRequestError("Bạn đang ở trang cá nhân bản thân");
@@ -189,6 +210,16 @@ const UserController = {
       }
 
       res.status(200).json(friend);
+   }),
+
+   searchUser: asyncHandler(async (req, res) => {
+      const keywordUser = req.query.keywordUser;
+      const uppercaseKeywordUser = keywordUser.toUpperCase();
+      const allUser = await UserModel.find({ keywords: { $in: uppercaseKeywordUser } }).select("fullName avatar");
+      if (allUser.length === 0) {
+         throw new BadRequestError("Không có dữ liệu ");
+      }
+      res.status(200).json(allUser);
    }),
 };
 
