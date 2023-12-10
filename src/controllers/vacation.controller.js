@@ -45,7 +45,6 @@ const VacationController = {
       const { userId } = req.user;
       const file = req.file;
       const data = JSON.parse(req.body.data);
-      console.log(req.body.data);
 
       const vacationUrl = await uploadImage(file);
 

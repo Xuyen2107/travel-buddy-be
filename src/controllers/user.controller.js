@@ -191,8 +191,6 @@ const UserController = {
    getSingleFriend: asyncHandler(async (req, res) => {
       const { userId } = req.user;
       const friendId = req.params.userId;
-      console.log(userId);
-      console.log(friendId);
 
       if (userId === friendId) {
          throw new BadRequestError("Bạn đang ở trang cá nhân bản thân");
