@@ -3,7 +3,7 @@ import messageController from "../controllers/message.controller.js";
 
 const messageRoute = express.Router();
 
-messageRoute.post("/", messageController.createMessage);
-messageRoute.get("/:chatId", messageController.getMessages);
+messageRoute.post("/create", messageController.createMessage);
+messageRoute.get("/get-all-by-chat/:chatId", messageController.getMessages);
 
 export default messageRoute;
