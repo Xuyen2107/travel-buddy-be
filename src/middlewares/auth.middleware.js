@@ -7,7 +7,6 @@ export const authMiddleware = (req, res, next) => {
          message: "Vui lòng đăng nhập.",
       });
    }
-   console.log(token);
    try {
       const decoded = jwt.verify(token, process.env.SECRET_KEY);
       req.user = decoded;
