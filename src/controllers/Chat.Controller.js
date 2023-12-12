@@ -37,7 +37,6 @@ const chatController = {
 
             if (isCurrentUserMember) {
                const otherMemberId = chat.members.find((memberId) => memberId !== userId);
-               console.log("🚀 ~ file: Chat.Controller.js:41 ~ chats.map ~ otherMemberId:", otherMemberId);
                membersInfo = await UserModel.findById(otherMemberId).select("fullName avatar");
             } else {
                membersInfo = await UserModel.find({ _id: { $in: chat.members } }).select("fullName avatar");
