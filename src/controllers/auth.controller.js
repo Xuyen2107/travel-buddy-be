@@ -58,7 +58,6 @@ const AuthController = {
       const token = await jwt.sign(jwtPayload, process.env.SECRET_KEY, {
          expiresIn: "72h",
       });
-      console.log(token);
 
       res.status(200).json(token);
    }),
