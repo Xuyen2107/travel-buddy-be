@@ -8,4 +8,4 @@
 //    measurementId: "G-6LV64YFCMW",
 // };
 
-// export default firebaseConfig;   
+// export default firebaseConfig;
